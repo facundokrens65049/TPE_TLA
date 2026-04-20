@@ -36,7 +36,7 @@ const int main(const int length, const char ** arguments) {
 	if (compilationStatus == SUCCEEDED) {
 		// ----------------------------------------------------------------------------------------
 		// Beginning of the Backend... ------------------------------------------------------------
-		logDebugging(logger, "Computing expression value...");
+/* 		logDebugging(logger, "Computing expression value...");
 		ComputationResult computationResult = executeCalculator(&compilerState);
 		if (computationResult.succeeded) {
 			compilerState.value = computationResult.value;
@@ -45,7 +45,7 @@ const int main(const int length, const char ** arguments) {
 		else {
 			logError(logger, "The computation phase rejects the input program.");
 			compilationStatus = FAILED;
-		}
+		} */
 		// ...end of the Backend. -----------------------------------------------------------------
 		// ----------------------------------------------------------------------------------------
 	}
