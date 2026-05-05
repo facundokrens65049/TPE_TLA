@@ -39,7 +39,7 @@ CamposEditar * CamposCampoEditarSemanticAction(CamposEditar * camposEditar, Camp
 Frecuencia * FrecuenciaSemanticAction(FrecuenciaTipo frecuenciaTipo);
 
 PeriodoOFechas * RangoPeriodoOFechasSemanticAction(Fecha * fechaDesde, Fecha * fechaHasta);
-PeriodoOFechas * FrecuenciaPeriodoOFechasFechaSemanticAction(Frecuencia * frecuencia);
+PeriodoOFechas * FrecuenciaPeriodoOFechasSemanticAction(Frecuencia * frecuencia);
 
 OptionalDescripcion * EmptyOptionalDescripcionSemanticAction();
 OptionalDescripcion * PresentOptionalDescripcionSemanticAction(const char * string);
@@ -58,7 +58,7 @@ FinalizarSentence * FinalizarSentenceSemanticAction(const int numero);
 ReporteSentence * ReporteSentenceSemanticAction(Formato * formato, PeriodoOFechas * periodoOFechas);
 EliminarSentence * EliminarSentenceSemanticAction(const int numero);
 EditarSentence * EditarSentenceSemanticAction(const int numero, CamposEditar * camposEditar);
-ConsultarSentence * ConsultarSentenceSemanticAction(PeriodoOFechas * periodoOFechas);
+ConsultaSentence * ConsultaSentenceSemanticAction(PeriodoOFechas * periodoOFechas);
 SuscripcionSentence * SuscripcionSentenceSemanticAction(const int numero, Frecuencia * frecuencia, OptionalCategoria * optionalCategoria, OptionalDesde * optionalDesde, OptionalHasta * optionalHasta, OptionalDescripcion * optionalDescripcion);
 IngresoSentence * IngresoSentenceSemanticAction(const int numero, OptionalCategoria * optionalCategoria, OptionalFecha * optionalFecha, OptionalDescripcion * optionalDescripcion);
 GastoSentence * GastoSentenceSemanticAction(const int numero, OptionalCuotas * optionalCuotas, OptionalCategoria * optionalCategoria, OptionalFecha * optionalFecha, OptionalDescripcion * optionalDescripcion);
@@ -68,7 +68,7 @@ Sentence * FinalizarSentenceSentenceSemanticAction(FinalizarSentence * finalizar
 Sentence * ReporteSentenceSentenceSemanticAction(ReporteSentence * reporteSentence);
 Sentence * EliminarSentenceSentenceSemanticAction(EliminarSentence * eliminarSentence);
 Sentence * EditarSentenceSentenceSemanticAction(EditarSentence * editarSentence);
-Sentence * ConsultarSentenceSentenceSemanticAction(ConsultarSentence * consultarSentence);
+Sentence * ConsultaSentenceSentenceSemanticAction(ConsultaSentence * consultaSentence);
 Sentence * SuscripcionSentenceSentenceSemanticAction(SuscripcionSentence * suscripcionSentence);
 Sentence * IngresoSentenceSentenceSemanticAction(IngresoSentence * ingresoSentence);
 Sentence * GastoSentenceSentenceSemanticAction(GastoSentence * gastoSentence);
