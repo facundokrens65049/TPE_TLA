@@ -54,7 +54,7 @@ Fecha * StringFechaSemanticAction(const char * string){
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Fecha * fecha = calloc(1, sizeof(Fecha));
 	fecha->type = DATE_TIPO;
-	fecha->date = strdup(string);
+	fecha->date = (char*)string;
 	return fecha;
 }
 
@@ -62,7 +62,7 @@ CampoEditar * DescripcionCampoEditarSemanticAction(const char * string){
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	CampoEditar * campoEditar = calloc(1, sizeof(CampoEditar));
 	campoEditar->type = DESCRIPCION_CAMPO;
-	campoEditar->descripcion = strdup(string);
+	campoEditar->descripcion = (char*)string;
 	return campoEditar;
 }
 
@@ -78,7 +78,7 @@ CampoEditar * CategoriaCampoEditarSemanticAction(const char * id){
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	CampoEditar * campoEditar = calloc(1, sizeof(CampoEditar));
 	campoEditar->type = CATEGORIA_CAMPO;
-	campoEditar->id = strdup(id);
+	campoEditar->id = (char*)id;
 	return campoEditar;
 }
 
@@ -137,7 +137,7 @@ OptionalDescripcion * EmptyOptionalDescripcionSemanticAction(){
 OptionalDescripcion * PresentOptionalDescripcionSemanticAction(const char * string){
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	OptionalDescripcion * optionalDescripcion = calloc(1, sizeof(OptionalDescripcion));
-	optionalDescripcion->descripcion = strdup(string);
+	optionalDescripcion->descripcion = (char*)string;
 	return optionalDescripcion;
 }
 
@@ -185,7 +185,7 @@ OptionalCategoria * EmptyOptionalCategoriaSemanticAction(){
 OptionalCategoria * PresentOptionalCategoriaSemanticAction(const char * id){
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	OptionalCategoria * optionalCategoria = calloc(1, sizeof(OptionalCategoria));
-	optionalCategoria->id = strdup(id);
+	optionalCategoria->id = (char*)id;
 	return optionalCategoria;
 }
 
@@ -274,7 +274,7 @@ GastoSentence * GastoSentenceSemanticAction(const int numero, OptionalCuotas * o
 DivisaSentence * DivisaSentenceSemanticAction(const char * id){
 	_logSyntacticAnalyzerAction(__FUNCTION__);
     DivisaSentence * divisaSentence = calloc(1, sizeof(DivisaSentence));
-    divisaSentence->id = strdup(id);
+    divisaSentence->id = (char*)id;
     return divisaSentence;
 }
 

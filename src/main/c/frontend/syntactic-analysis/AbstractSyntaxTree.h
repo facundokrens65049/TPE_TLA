@@ -51,30 +51,30 @@ typedef struct Program Program;
  */
 
 enum FormatoTipo {
-    HTML_TIPO,
-    TEXTO_PLANO_TIPO
+	HTML_TIPO,
+	TEXTO_PLANO_TIPO
 };
 
 enum FechaTipo {
-    DATE_TIPO,
-    HOY_TIPO,
-    AYER_TIPO,
-    MANIANA_TIPO
+	DATE_TIPO,
+	HOY_TIPO,
+	AYER_TIPO,
+	MANIANA_TIPO
 };
 
 enum FrecuenciaTipo {
-    MENSUAL_TIPO,
-    SEMANAL_TIPO,
-    ANUAL_TIPO
+	MENSUAL_TIPO,
+	SEMANAL_TIPO,
+	ANUAL_TIPO
 };
 
 enum PeriodoOFechasTipo {
-    RANGO_TIPO,
-    FRECUENCIA_TIPO
+	RANGO_TIPO,
+	FRECUENCIA_TIPO
 };
 
 enum CampoEditarTipo {
-    MONTO_CAMPO,
+	MONTO_CAMPO,
     CATEGORIA_CAMPO,
     FECHA_CAMPO,
     DESCRIPCION_CAMPO
@@ -93,7 +93,7 @@ enum SentenceType {
 };
 
 struct Formato {
-    FormatoTipo formatoTipo;
+	FormatoTipo formatoTipo;
 };
 
 struct Fecha {
@@ -135,53 +135,53 @@ struct PeriodoOFechas {
 };
 
 struct OptionalDescripcion {
-    char * descripcion;
+	char * descripcion;
 };
 
 struct OptionalHasta {
-    Fecha * fecha;
+	Fecha * fecha;
 };
 
 struct OptionalDesde {
-    Fecha * fecha;
+	Fecha * fecha;
 };
 
 struct OptionalFecha {
-    Fecha * fecha;
+	Fecha * fecha;
 };
 
 struct OptionalCategoria {
-    char * id;
+	char * id;
 };
 
 struct OptionalCuotas {
-    int numero;
+	int numero;
 };
 
 struct FinalizarSentence {
-    int numero;
+	int numero;
 };
 
 struct ReporteSentence {
-    Formato * formato;
-    PeriodoOFechas * periodoOFechas;
+	Formato * formato;
+	PeriodoOFechas * periodoOFechas;
 };
 
 struct EliminarSentence {
-    int numero;
+	int numero;
 };
 
 struct EditarSentence {
-    int numero;
-    CamposEditar * camposEditar;
+	int numero;
+	CamposEditar * camposEditar;
 };
 
 struct ConsultaSentence {
-    PeriodoOFechas * periodoOFechas;
+	PeriodoOFechas * periodoOFechas;
 };
 
 struct SuscripcionSentence {
-    int numero;
+	int numero;
     Frecuencia * frecuencia;
     OptionalCategoria * optionalCategoria;
     OptionalDesde * optionalDesde;
@@ -190,7 +190,7 @@ struct SuscripcionSentence {
 };
 
 struct IngresoSentence {
-    int numero;
+	int numero;
     OptionalCategoria * optionalCategoria;
     OptionalFecha * optionalFecha;
     OptionalDescripcion * optionalDescripcion;
@@ -205,7 +205,7 @@ struct GastoSentence {
 };
 
 struct DivisaSentence {
-    char * id;
+	char * id;
 };
 
 struct Sentence {
@@ -252,7 +252,7 @@ void destroyFinalizarSentence(FinalizarSentence * finalizarSentence);
 void destroyReporteSentence(ReporteSentence * reporteSentence);
 void destroyEliminarSentence(EliminarSentence * eliminarSentence);
 void destroyEditarSentence(EditarSentence * editarSentence);
-void destroyConsultarSentence(ConsultaSentence * consultaSentence);
+void destroyConsultaSentence(ConsultaSentence * consultaSentence);
 void destroySuscripcionSentence(SuscripcionSentence * suscripcionSentence);
 void destroyIngresoSentence(IngresoSentence * ingresoSentence);
 void destroyGastoSentence(GastoSentence * gastoSentence);

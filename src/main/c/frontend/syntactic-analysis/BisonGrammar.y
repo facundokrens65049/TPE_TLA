@@ -58,6 +58,14 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 	Formato * formato;
 }
 
+/**
+ * Destructors. This functions are executed after the parsing ends, so if the
+ * AST must be used in the following phases of the compiler you shouldn't used
+ * this approach for the AST root node ("program" non-terminal, in this
+ * grammar), or it will drop the entire tree even if the parsing succeeds.
+ *
+ * @see https://www.gnu.org/software/bison/manual/html_node/Destructor-Decl.html
+ */
 /* Destructors */
 %destructor { free($$); } <string>
 %destructor { destroySentences($$); } <sentences>
@@ -83,6 +91,12 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %destructor { destroyCampoEditar($$); } <campoEditar>
 %destructor { destroyFecha($$); } <fecha>
 %destructor { destroyFormato($$); } <formato>
+
+/* Internal tokens used by FlexActions for logging (never pushed to the parser) */
+%token <token> IGNORED
+%token <token> UNKNOWN
+%token <token> OPEN_COMMENT
+%token <token> CLOSE_COMMENT
 
 /* TERMINALS */
 %token <integer> NUMERO
@@ -139,6 +153,13 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %type <campoEditar> campoEditar
 %type <fecha> fecha
 %type <formato> formato
+
+/**
+ * Precedence and associativity.
+ *
+ * @see https://en.cppreference.com/w/cpp/language/operator_precedence.html
+ * @see https://www.gnu.org/software/bison/manual/html_node/Precedence.html
+ */
 
 %%
 
