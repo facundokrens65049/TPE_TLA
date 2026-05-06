@@ -14,27 +14,35 @@
  * @see https://westes.github.io/flex/manual/Definitions-Section.html#Definitions-Section
  */
 
-extern CompilationStatus ArithmeticOperatorLexemeAction(TokenLabel label);
-extern CompilationStatus EnterImportExpressionLexemeAction(FlexContext context);
-extern CompilationStatus EnterMultilineCommentLexemeAction(FlexContext context);
+extern CompilationStatus DateLexemeAction();
+extern CompilationStatus DescripcionLexemeAction(FlexContext context);
 extern CompilationStatus EOFLexemeAction();
+extern CompilationStatus EnterMultilineCommentLexemeAction(FlexContext context);
+extern CompilationStatus IdentifierLexemeAction();
 extern CompilationStatus IgnoredLexemeAction();
-extern CompilationStatus IntegerLexemeAction();
-extern CompilationStatus LeaveImportExpressionLexemeAction();
+extern CompilationStatus KeywordLexemeAction(TokenLabel label);
 extern CompilationStatus LeaveMultilineCommentLexemeAction();
-extern CompilationStatus ParenthesisLexemeAction(TokenLabel label);
-extern CompilationStatus SubexpressionLexemeAction();
+extern CompilationStatus LeaveStringContextLexemeAction();
+extern CompilationStatus NumeroLexemeAction();
+extern CompilationStatus StringLexemeAction();
 extern CompilationStatus UnknownLexemeAction();
 
 %}
+
+/**
+ * Case-insensitive matching for all ASCII patterns.
+ *
+ * @see https://westes.github.io/flex/manual/Scanner-Options.html
+ */
+%option case-insensitive
 
 /**
  * Flex contexts (a.k.a. start conditions).
  *
  * @see https://westes.github.io/flex/manual/Start-Conditions.html
  */
-%x IMPORT_EXPRESSION
 %x MULTILINE_COMMENT
+%x STRING_LINE_CONTEXT
 
 /**
  * Reusable patterns.
@@ -42,7 +50,9 @@ extern CompilationStatus UnknownLexemeAction();
  * @see https://westes.github.io/flex/manual/Matching.html
  * @see https://westes.github.io/flex/manual/Patterns.html
  */
-whitespace			[[:space:]]+
+whitespace		[[:space:]]+
+digit			[0-9]
+letter			[a-zA-Z]
 
 %%
 
@@ -54,25 +64,44 @@ whitespace			[[:space:]]+
 
 %}
 
-"{"									{ return EnterImportExpressionLexemeAction(IMPORT_EXPRESSION); }
-<IMPORT_EXPRESSION>[^{}]+			{ return SubexpressionLexemeAction(); }
-<IMPORT_EXPRESSION>"}"				{ return LeaveImportExpressionLexemeAction(); }
-<IMPORT_EXPRESSION>.				{ return UnknownLexemeAction(); }
-
 "/*"								{ return EnterMultilineCommentLexemeAction(MULTILINE_COMMENT); }
 <MULTILINE_COMMENT>"*/"				{ return LeaveMultilineCommentLexemeAction(); }
 <MULTILINE_COMMENT>[^*]+			{ return IgnoredLexemeAction(); }
 <MULTILINE_COMMENT>.				{ return IgnoredLexemeAction(); }
 
-"-"									{ return ArithmeticOperatorLexemeAction(SUB); }
-"*"									{ return ArithmeticOperatorLexemeAction(MUL); }
-"/"									{ return ArithmeticOperatorLexemeAction(DIV); }
-"+"									{ return ArithmeticOperatorLexemeAction(ADD); }
+<STRING_LINE_CONTEXT>[^\n]+			{ return StringLexemeAction(); }
+<STRING_LINE_CONTEXT>"\n"			{ return LeaveStringContextLexemeAction(); }
 
-"("									{ return ParenthesisLexemeAction(OPEN_PARENTHESIS); }
-")"									{ return ParenthesisLexemeAction(CLOSE_PARENTHESIS); }
+"descripci"(\xc3\xb3|\xc3\x93|"o")"n"				{ return DescripcionLexemeAction(STRING_LINE_CONTEXT); }
+"suscripci"(\xc3\xb3|\xc3\x93|"o")"n"				{ return KeywordLexemeAction(SUSCRIPCION); }
+"categor"(\xc3\xad|\xc3\x8d|"i")"a"				{ return KeywordLexemeAction(CATEGORIA); }
+"ma"(\xc3\xb1|\xc3\x91|"n")"iana"					{ return KeywordLexemeAction(MANIANA); }
+"divisa"							{ return KeywordLexemeAction(DIVISA); }
+"gasto"								{ return KeywordLexemeAction(GASTO); }
+"ingreso"							{ return KeywordLexemeAction(INGRESO); }
+"consultar"							{ return KeywordLexemeAction(CONSULTAR); }
+"editar"							{ return KeywordLexemeAction(EDITAR); }
+"eliminar"							{ return KeywordLexemeAction(ELIMINAR); }
+"reporte"							{ return KeywordLexemeAction(REPORTE); }
+"finalizar"							{ return KeywordLexemeAction(FINALIZAR); }
+"cuotas"							{ return KeywordLexemeAction(CUOTAS); }
+"fecha"								{ return KeywordLexemeAction(FECHA); }
+"monto"								{ return KeywordLexemeAction(MONTO); }
+"mensual"							{ return KeywordLexemeAction(MENSUAL); }
+"semanal"							{ return KeywordLexemeAction(SEMANAL); }
+"anual"								{ return KeywordLexemeAction(ANUAL); }
+"hoy"								{ return KeywordLexemeAction(HOY); }
+"ayer"								{ return KeywordLexemeAction(AYER); }
+"desde"								{ return KeywordLexemeAction(DESDE); }
+"hasta"								{ return KeywordLexemeAction(HASTA); }
+"html"								{ return KeywordLexemeAction(HTML); }
+"texto_plano"						{ return KeywordLexemeAction(TEXTO_PLANO); }
 
-[[:digit:]]+						{ return IntegerLexemeAction(); }
+{digit}{2}"-"{digit}{2}"-"{digit}{4}			{ return DateLexemeAction(); }
+
+{digit}+							{ return NumeroLexemeAction(); }
+
+{letter}({letter}|{digit}|"_")*		{ return IdentifierLexemeAction(); }
 
 {whitespace}						{ return IgnoredLexemeAction(); }
 .									{ return UnknownLexemeAction(); }
