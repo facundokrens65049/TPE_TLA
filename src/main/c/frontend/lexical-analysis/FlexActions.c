@@ -84,8 +84,10 @@ CompilationStatus StringLexemeAction() {
 	char * start = token->lexeme;
 	while (*start == ' ' || *start == '\t') start++;
 	char * end = start + strlen(start) - 1;
-	while (end > start && (*end == ' ' || *end == '\t')) end--;
-	token->semanticValue->string = strndup(start, (size_t)(end - start + 1));
+	while (end > start && (*end == ' ' || *end == '\t' || *end == '\r')) end--;
+	size_t len = (size_t)(end - start + 1);
+	if (len > 80) len = 80;
+	token->semanticValue->string = strndup(start, len);
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
 	destroyToken(token);

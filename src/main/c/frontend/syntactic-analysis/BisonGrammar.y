@@ -127,6 +127,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %token <token> HASTA
 %token <token> HTML
 %token <token> TEXTO_PLANO
+%token <token> PDF
 
 /* NON-TERMINALS */
 %type <program> program
@@ -262,6 +263,7 @@ fecha: DATE { $$ = StringFechaSemanticAction($1); }
 
 formato: HTML { $$ = FormatoSemanticAction(HTML_TIPO); }
 	| TEXTO_PLANO { $$ = FormatoSemanticAction(TEXTO_PLANO_TIPO); }
+	| PDF { $$ = FormatoSemanticAction(PDF_TIPO); }
 	;
 
 %%

@@ -52,7 +52,8 @@ typedef struct Program Program;
 
 enum FormatoTipo {
 	HTML_TIPO,
-	TEXTO_PLANO_TIPO
+	TEXTO_PLANO_TIPO,
+	PDF_TIPO
 };
 
 enum FechaTipo {

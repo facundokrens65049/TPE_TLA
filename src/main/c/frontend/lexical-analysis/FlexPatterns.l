@@ -52,7 +52,8 @@ extern CompilationStatus UnknownLexemeAction();
  */
 whitespace		[[:space:]]+
 digit			[0-9]
-letter			[a-zA-Z]
+accented		(\xc3\xa1|\xc3\xa9|\xc3\xad|\xc3\xb3|\xc3\xba|\xc3\xbc|\xc3\xb1|\xc3\x81|\xc3\x89|\xc3\x8d|\xc3\x93|\xc3\x9a|\xc3\x9c|\xc3\x91)
+letter			[a-zA-Z]|{accented}
 
 %%
 
@@ -65,6 +66,7 @@ letter			[a-zA-Z]
 %}
 
 "/*"								{ return EnterMultilineCommentLexemeAction(MULTILINE_COMMENT); }
+"//"[^\n]*							{ return IgnoredLexemeAction(); }
 <MULTILINE_COMMENT>"*/"				{ return LeaveMultilineCommentLexemeAction(); }
 <MULTILINE_COMMENT>[^*]+			{ return IgnoredLexemeAction(); }
 <MULTILINE_COMMENT>.				{ return IgnoredLexemeAction(); }
@@ -96,6 +98,7 @@ letter			[a-zA-Z]
 "hasta"								{ return KeywordLexemeAction(HASTA); }
 "html"								{ return KeywordLexemeAction(HTML); }
 "texto_plano"						{ return KeywordLexemeAction(TEXTO_PLANO); }
+"pdf"								{ return KeywordLexemeAction(PDF); }
 
 {digit}{2}"-"{digit}{2}"-"{digit}{4}			{ return DateLexemeAction(); }
 
