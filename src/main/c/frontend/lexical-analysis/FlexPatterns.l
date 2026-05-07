@@ -52,8 +52,7 @@ extern CompilationStatus UnknownLexemeAction();
  */
 whitespace		[[:space:]]+
 digit			[0-9]
-accented		(\xc3\xa1|\xc3\xa9|\xc3\xad|\xc3\xb3|\xc3\xba|\xc3\xbc|\xc3\xb1|\xc3\x81|\xc3\x89|\xc3\x8d|\xc3\x93|\xc3\x9a|\xc3\x9c|\xc3\x91)
-letter			[a-zA-Z]|{accented}
+letter			[a-zA-Z]
 
 %%
 
@@ -77,7 +76,7 @@ letter			[a-zA-Z]|{accented}
 "descripci"(\xc3\xb3|\xc3\x93|"o")"n"				{ return DescripcionLexemeAction(STRING_LINE_CONTEXT); }
 "suscripci"(\xc3\xb3|\xc3\x93|"o")"n"				{ return KeywordLexemeAction(SUSCRIPCION); }
 "categor"(\xc3\xad|\xc3\x8d|"i")"a"				{ return KeywordLexemeAction(CATEGORIA); }
-"ma"(\xc3\xb1|\xc3\x91|"n")"iana"					{ return KeywordLexemeAction(MANIANA); }
+("ma"(\xc3\xb1|\xc3\x91)"ana")|"maniana"				{ return KeywordLexemeAction(MANIANA); }
 "divisa"							{ return KeywordLexemeAction(DIVISA); }
 "gasto"								{ return KeywordLexemeAction(GASTO); }
 "ingreso"							{ return KeywordLexemeAction(INGRESO); }
@@ -104,7 +103,7 @@ letter			[a-zA-Z]|{accented}
 
 {digit}+							{ return NumeroLexemeAction(); }
 
-{letter}({letter}|{digit}|"_")*		{ return IdentifierLexemeAction(); }
+({letter}|\xc3[\x80-\xbf])({letter}|{digit}|"_"|\xc3[\x80-\xbf])*		{ return IdentifierLexemeAction(); }
 
 {whitespace}						{ return IgnoredLexemeAction(); }
 .									{ return UnknownLexemeAction(); }

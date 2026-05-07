@@ -1,0 +1,8 @@
+// Programa con multiples sentencias de distintos tipos
+divisa ARS
+ingreso 200000 categoria salario fecha 01-04-2026 descripcion sueldo abril
+gasto 15000 categoria supermercado descripcion compras semanales
+gasto 180000 cuotas 12 categoria electrodomesticos fecha 15-03-2026 descripcion lavarropas
+suscripcion 7999 mensual categoria streaming desde 01-01-2026 descripcion plataforma de series
+consultar mensual
+reporte html mensual
