@@ -7,29 +7,29 @@
 #include <string.h>
 #include <time.h>
 
-static bool isLeapYear(const int year) {
+static bool _isLeapYear(const int year) {
 	return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
 }
 
-static int daysInMonth(const int month, const int year) {
+static int _daysInMonth(const int month, const int year) {
 	static const int days[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-	if (month == 2 && isLeapYear(year)) {
+	if (month == 2 && _isLeapYear(year)) {
 		return 29;
 	}
 	return days[month - 1];
 }
 
-static bool validYmd(const int day, const int month, const int year) {
+static bool _validYmd(const int day, const int month, const int year) {
 	if (year < 1 || month < 1 || month > 12) {
 		return false;
 	}
-	if (day < 1 || day > daysInMonth(month, year)) {
+	if (day < 1 || day > _daysInMonth(month, year)) {
 		return false;
 	}
 	return true;
 }
 
-static bool parseDdMmYyyy(const char * s, int * outDay, int * outMonth, int * outYear) {
+static bool _parseDdMmYyyy(const char * s, int * outDay, int * outMonth, int * outYear) {
 	if (s == NULL || strlen(s) != 10u || s[2] != '-' || s[5] != '-') {
 		return false;
 	}
@@ -53,31 +53,31 @@ static bool parseDdMmYyyy(const char * s, int * outDay, int * outMonth, int * ou
 	return true;
 }
 
-static bool absoluteDateValueValid(DateValue * dateValue) {
+static bool _absoluteDateValueValid(DateValue * dateValue) {
 	if (dateValue == NULL || dateValue->kind != DATE_VALUE_ABSOLUTE) {
 		return true;
 	}
 	int d = 0;
 	int m = 0;
 	int y = 0;
-	if (!parseDdMmYyyy(dateValue->absoluteText, &d, &m, &y)) {
+	if (!_parseDdMmYyyy(dateValue->absoluteText, &d, &m, &y)) {
 		return false;
 	}
-	return validYmd(d, m, y);
+	return _validYmd(d, m, y);
 }
 
-static void timeToYmd(const time_t t, int * y, int * m, int * d) {
+static void _timeToYmd(const time_t t, int * y, int * m, int * d) {
 	struct tm * const tm = localtime(&t);
 	*y = tm->tm_year + 1900;
 	*m = tm->tm_mon + 1;
 	*d = tm->tm_mday;
 }
 
-static int ymdToComparable(const int y, const int m, const int d) {
+static int _ymdToComparable(const int y, const int m, const int d) {
 	return y * 10000 + m * 100 + d;
 }
 
-static bool dateValueToComparable(DateValue * dateValue, const time_t ref, int * out) {
+static bool _dateValueToComparable(DateValue * dateValue, const time_t ref, int * out) {
 	if (dateValue == NULL || out == NULL) {
 		return false;
 	}
@@ -86,18 +86,18 @@ static bool dateValueToComparable(DateValue * dateValue, const time_t ref, int *
 			int d = 0;
 			int m = 0;
 			int y = 0;
-			if (!parseDdMmYyyy(dateValue->absoluteText, &d, &m, &y) || !validYmd(d, m, y)) {
+			if (!_parseDdMmYyyy(dateValue->absoluteText, &d, &m, &y) || !_validYmd(d, m, y)) {
 				return false;
 			}
-			*out = ymdToComparable(y, m, d);
+			*out = _ymdToComparable(y, m, d);
 			return true;
 		}
 		case DATE_VALUE_TODAY: {
 			int y = 0;
 			int m = 0;
 			int d = 0;
-			timeToYmd(ref, &y, &m, &d);
-			*out = ymdToComparable(y, m, d);
+			_timeToYmd(ref, &y, &m, &d);
+			*out = _ymdToComparable(y, m, d);
 			return true;
 		}
 		case DATE_VALUE_YESTERDAY: {
@@ -105,8 +105,8 @@ static bool dateValueToComparable(DateValue * dateValue, const time_t ref, int *
 			int y = 0;
 			int m = 0;
 			int d = 0;
-			timeToYmd(t, &y, &m, &d);
-			*out = ymdToComparable(y, m, d);
+			_timeToYmd(t, &y, &m, &d);
+			*out = _ymdToComparable(y, m, d);
 			return true;
 		}
 		case DATE_VALUE_TOMORROW: {
@@ -114,8 +114,8 @@ static bool dateValueToComparable(DateValue * dateValue, const time_t ref, int *
 			int y = 0;
 			int m = 0;
 			int d = 0;
-			timeToYmd(t, &y, &m, &d);
-			*out = ymdToComparable(y, m, d);
+			_timeToYmd(t, &y, &m, &d);
+			*out = _ymdToComparable(y, m, d);
 			return true;
 		}
 		default:
@@ -123,20 +123,20 @@ static bool dateValueToComparable(DateValue * dateValue, const time_t ref, int *
 	}
 }
 
-static bool validateDateFilter(DateFilter * filter, const time_t ref, Logger * logger) {
+static bool _validateDateFilter(DateFilter * filter, const time_t ref, Logger * logger) {
 	if (filter == NULL) {
 		return true;
 	}
 	if (filter->kind == DATE_FILTER_PREDEFINED_PERIOD) {
 		return true;
 	}
-	if (!absoluteDateValueValid(filter->rangeFrom) || !absoluteDateValueValid(filter->rangeTo)) {
+	if (!_absoluteDateValueValid(filter->rangeFrom) || !_absoluteDateValueValid(filter->rangeTo)) {
 		logError(logger, "Semantic error: invalid absolute date in range.");
 		return false;
 	}
 	int fromCmp = 0;
 	int toCmp = 0;
-	if (!dateValueToComparable(filter->rangeFrom, ref, &fromCmp) || !dateValueToComparable(filter->rangeTo, ref, &toCmp)) {
+	if (!_dateValueToComparable(filter->rangeFrom, ref, &fromCmp) || !_dateValueToComparable(filter->rangeTo, ref, &toCmp)) {
 		logError(logger, "Semantic error: could not compare date range.");
 		return false;
 	}
@@ -147,7 +147,7 @@ static bool validateDateFilter(DateFilter * filter, const time_t ref, Logger * l
 	return true;
 }
 
-static bool validateEditFieldList(EditFieldList * fields, Logger * logger) {
+static bool _validateEditFieldList(EditFieldList * fields, Logger * logger) {
 	for (EditFieldList * node = fields; node != NULL; node = node->next) {
 		if (node->field == NULL) {
 			continue;
@@ -161,7 +161,7 @@ static bool validateEditFieldList(EditFieldList * fields, Logger * logger) {
 				}
 				break;
 			case EDIT_FIELD_DATE_VALUE:
-				if (!absoluteDateValueValid(f->dateValue)) {
+				if (!_absoluteDateValueValid(f->dateValue)) {
 					logError(logger, "Semantic error: invalid date in edit field.");
 					return false;
 				}
@@ -174,7 +174,7 @@ static bool validateEditFieldList(EditFieldList * fields, Logger * logger) {
 	return true;
 }
 
-static bool validateStatement(Statement * statement, const time_t ref, Logger * logger) {
+static bool _validateStatement(Statement * statement, const time_t ref, Logger * logger) {
 	if (statement == NULL) {
 		return true;
 	}
@@ -191,7 +191,7 @@ static bool validateStatement(Statement * statement, const time_t ref, Logger * 
 				logError(logger, "Semantic error: installment count must be at least 1.");
 				return false;
 			}
-			if (e->optionalOperationDate != NULL && !absoluteDateValueValid(e->optionalOperationDate->dateValue)) {
+			if (e->optionalOperationDate != NULL && !_absoluteDateValueValid(e->optionalOperationDate->dateValue)) {
 				logError(logger, "Semantic error: invalid date on expense.");
 				return false;
 			}
@@ -203,7 +203,7 @@ static bool validateStatement(Statement * statement, const time_t ref, Logger * 
 				logError(logger, "Semantic error: income amount must be positive.");
 				return false;
 			}
-			if (i->optionalOperationDate != NULL && !absoluteDateValueValid(i->optionalOperationDate->dateValue)) {
+			if (i->optionalOperationDate != NULL && !_absoluteDateValueValid(i->optionalOperationDate->dateValue)) {
 				logError(logger, "Semantic error: invalid date on income.");
 				return false;
 			}
@@ -215,18 +215,18 @@ static bool validateStatement(Statement * statement, const time_t ref, Logger * 
 				logError(logger, "Semantic error: subscription amount must be positive.");
 				return false;
 			}
-			if (s->optionalStartDate != NULL && !absoluteDateValueValid(s->optionalStartDate->dateValue)) {
+			if (s->optionalStartDate != NULL && !_absoluteDateValueValid(s->optionalStartDate->dateValue)) {
 				logError(logger, "Semantic error: invalid subscription start date.");
 				return false;
 			}
-			if (s->optionalEndDate != NULL && !absoluteDateValueValid(s->optionalEndDate->dateValue)) {
+			if (s->optionalEndDate != NULL && !_absoluteDateValueValid(s->optionalEndDate->dateValue)) {
 				logError(logger, "Semantic error: invalid subscription end date.");
 				return false;
 			}
 			if (s->optionalStartDate != NULL && s->optionalEndDate != NULL) {
 				int a = 0;
 				int b = 0;
-				if (!dateValueToComparable(s->optionalStartDate->dateValue, ref, &a) || !dateValueToComparable(s->optionalEndDate->dateValue, ref, &b)) {
+				if (!_dateValueToComparable(s->optionalStartDate->dateValue, ref, &a) || !_dateValueToComparable(s->optionalEndDate->dateValue, ref, &b)) {
 					logError(logger, "Semantic error: could not compare subscription dates.");
 					return false;
 				}
@@ -238,14 +238,14 @@ static bool validateStatement(Statement * statement, const time_t ref, Logger * 
 			return true;
 		}
 		case STATEMENT_QUERY:
-			return validateDateFilter(statement->queryStatement->dateFilter, ref, logger);
+			return _validateDateFilter(statement->queryStatement->dateFilter, ref, logger);
 		case STATEMENT_EDIT: {
 			EditStatement * const e = statement->editStatement;
 			if (e->operationId <= 0) {
 				logError(logger, "Semantic error: operation id must be positive.");
 				return false;
 			}
-			return validateEditFieldList(e->fields, logger);
+			return _validateEditFieldList(e->fields, logger);
 		}
 		case STATEMENT_DELETE:
 			if (statement->deleteStatement->operationId <= 0) {
@@ -254,7 +254,7 @@ static bool validateStatement(Statement * statement, const time_t ref, Logger * 
 			}
 			return true;
 		case STATEMENT_REPORT:
-			return validateDateFilter(statement->reportStatement->dateFilter, ref, logger);
+			return _validateDateFilter(statement->reportStatement->dateFilter, ref, logger);
 		case STATEMENT_FINALIZE:
 			if (statement->finalizeStatement->operationId <= 0) {
 				logError(logger, "Semantic error: operation id must be positive.");
@@ -277,7 +277,7 @@ CompilationStatus validateProgram(Program * program) {
 	}
 	const time_t ref = time(NULL);
 	for (StatementList * node = program->statements; node != NULL; node = node->next) {
-		if (!validateStatement(node->statement, ref, logger)) {
+		if (!_validateStatement(node->statement, ref, logger)) {
 			destroyLogger(logger);
 			return FAILED;
 		}

@@ -37,7 +37,7 @@ char * indentation(const char character, const unsigned int level, const unsigne
 
 /**
  * Returns a new heap string: ASCII lowercased and Spanish UTF-8 accents stripped
- * (á→a, ñ→n, ü→u, etc.). Used for financial category identifiers per domain rules.
+ * (á→a, ü→u, etc.), preserving ñ/Ñ as UTF-8 ñ. Used for financial category identifiers.
  * Returns NULL only if raw is NULL. On allocation failure returns a copy of raw.
  */
 char * normalizeFinancialCategory(const char * raw);
