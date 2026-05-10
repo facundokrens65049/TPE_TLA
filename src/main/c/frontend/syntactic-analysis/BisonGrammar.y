@@ -164,106 +164,106 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
 %%
 
-program: sentences 						{ $$ = sentencesProgramSemanticAction($1); }
+program: sentences 						{ $$ = SentencesProgramSemanticAction($1); }
 	;
 
-sentences: sentences sentence			{ $$ = sentencesSentenceSemanticAction($1, $2); }
-	| sentence							{ $$ = sentenceSemanticAction($1); }
+sentences: sentences sentence			{ $$ = SentencesSentenceSemanticAction($1, $2); }
+	| sentence							{ $$ = SentenceSemanticAction($1); }
 	;
 
-sentence: currencySentence 				{ $$ = sentenceFromCurrencySemanticAction($1); }
-	| expenseSentence 					{ $$ = sentenceFromExpenseSemanticAction($1); }
-	| incomeSentence 					{ $$ = sentenceFromIncomeSemanticAction($1); }
-	| subscriptionSentence 				{ $$ = sentenceFromSubscriptionSemanticAction($1); }
-	| querySentence 					{ $$ = sentenceFromQuerySemanticAction($1); }
-	| editSentence 						{ $$ = sentenceFromEditSemanticAction($1); }
-	| deleteSentence 					{ $$ = sentenceFromDeleteSemanticAction($1); }
-	| reportSentence 					{ $$ = sentenceFromReportSemanticAction($1); }
-	| finalizeSentence 					{ $$ = sentenceFromFinalizeSemanticAction($1); }
+sentence: currencySentence 				{ $$ = SentenceFromCurrencySemanticAction($1); }
+	| expenseSentence 					{ $$ = SentenceFromExpenseSemanticAction($1); }
+	| incomeSentence 					{ $$ = SentenceFromIncomeSemanticAction($1); }
+	| subscriptionSentence 				{ $$ = SentenceFromSubscriptionSemanticAction($1); }
+	| querySentence 					{ $$ = SentenceFromQuerySemanticAction($1); }
+	| editSentence 						{ $$ = SentenceFromEditSemanticAction($1); }
+	| deleteSentence 					{ $$ = SentenceFromDeleteSemanticAction($1); }
+	| reportSentence 					{ $$ = SentenceFromReportSemanticAction($1); }
+	| finalizeSentence 					{ $$ = SentenceFromFinalizeSemanticAction($1); }
 	;
 
-currencySentence: DIVISA ID 			{$$ = currencySentenceSemanticAction($2); }
+currencySentence: DIVISA ID 			{$$ = CurrencySentenceSemanticAction($2); }
 	;
 
-expenseSentence: GASTO NUMERO optionalInstallments optionalCategory optionalDate optionalDescription {$$ = expenseSentenceSemanticAction($2, $3, $4, $5, $6); }
+expenseSentence: GASTO NUMERO optionalInstallments optionalCategory optionalDate optionalDescription {$$ = ExpenseSentenceSemanticAction($2, $3, $4, $5, $6); }
 	;
 
 
-incomeSentence: INGRESO NUMERO optionalCategory optionalDate optionalDescription {$$ = incomeSentenceSemanticAction($2, $3, $4, $5); }
+incomeSentence: INGRESO NUMERO optionalCategory optionalDate optionalDescription {$$ = IncomeSentenceSemanticAction($2, $3, $4, $5); }
 	;
 
 	
-subscriptionSentence: SUSCRIPCION NUMERO frequency optionalCategory optionalFrom optionalUntil optionalDescription { $$ = subscriptionSentenceSemanticAction($2, $3, $4, $5, $6, $7); }
+subscriptionSentence: SUSCRIPCION NUMERO frequency optionalCategory optionalFrom optionalUntil optionalDescription { $$ = SubscriptionSentenceSemanticAction($2, $3, $4, $5, $6, $7); }
 	;
 
-querySentence: CONSULTAR datePeriod { $$ = querySentenceSemanticAction($2); }
+querySentence: CONSULTAR datePeriod { $$ = QuerySentenceSemanticAction($2); }
 	;
 
 
-editSentence: EDITAR NUMERO editFields { $$ = editSentenceSemanticAction($2, $3); }
+editSentence: EDITAR NUMERO editFields { $$ = EditSentenceSemanticAction($2, $3); }
 	;
 
-deleteSentence: ELIMINAR NUMERO { $$ = deleteSentenceSemanticAction($2); }
+deleteSentence: ELIMINAR NUMERO { $$ = DeleteSentenceSemanticAction($2); }
 	;
 
-reportSentence: REPORTE reportFormat datePeriod { $$ = reportSentenceSemanticAction($2, $3); }
+reportSentence: REPORTE reportFormat datePeriod { $$ = ReportSentenceSemanticAction($2, $3); }
 	;
 
-finalizeSentence: FINALIZAR NUMERO { $$ = finalizeSentenceSemanticAction($2); }
+finalizeSentence: FINALIZAR NUMERO { $$ = FinalizeSentenceSemanticAction($2); }
 	;
 
-optionalInstallments: CUOTAS NUMERO { $$ = presentOptionalInstallmentsSemanticAction($2); }
-	| %empty { $$ = emptyOptionalInstallmentsSemanticAction(); }
+optionalInstallments: CUOTAS NUMERO { $$ = PresentOptionalInstallmentsSemanticAction($2); }
+	| %empty { $$ = EmptyOptionalInstallmentsSemanticAction(); }
 	;
 
-optionalCategory: CATEGORIA ID { $$ = presentOptionalCategorySemanticAction($2); }
-	| %empty { $$ = emptyOptionalCategorySemanticAction(); }
+optionalCategory: CATEGORIA ID { $$ = PresentOptionalCategorySemanticAction($2); }
+	| %empty { $$ = EmptyOptionalCategorySemanticAction(); }
 	;
 
-optionalDate: FECHA date { $$ = presentOptionalDateSemanticAction($2); }
-	| %empty { $$ = emptyOptionalDateSemanticAction(); }
+optionalDate: FECHA date { $$ = PresentOptionalDateSemanticAction($2); }
+	| %empty { $$ = EmptyOptionalDateSemanticAction(); }
 	;
 
-optionalFrom: DESDE date { $$ = presentOptionalFromSemanticAction($2); }
-	| %empty { $$ = emptyOptionalFromSemanticAction(); }
+optionalFrom: DESDE date { $$ = PresentOptionalFromSemanticAction($2); }
+	| %empty { $$ = EmptyOptionalFromSemanticAction(); }
 	;
 
-optionalUntil: HASTA date { $$ = presentOptionalUntilSemanticAction($2); }
-	| %empty { $$ = emptyOptionalUntilSemanticAction(); }
+optionalUntil: HASTA date { $$ = PresentOptionalUntilSemanticAction($2); }
+	| %empty { $$ = EmptyOptionalUntilSemanticAction(); }
 	;
 
-optionalDescription: DESCRIPCION STRING { $$ = presentOptionalDescriptionSemanticAction($2); }
-	| %empty { $$ = emptyOptionalDescriptionSemanticAction(); }
+optionalDescription: DESCRIPCION STRING { $$ = PresentOptionalDescriptionSemanticAction($2); }
+	| %empty { $$ = EmptyOptionalDescriptionSemanticAction(); }
 	;
 
-datePeriod: DESDE date HASTA date { $$ = dateRangePeriodSemanticAction($2, $4); }
-	| frequency { $$ = frequencyDatePeriodSemanticAction($1); }
+datePeriod: DESDE date HASTA date { $$ = DateRangePeriodSemanticAction($2, $4); }
+	| frequency { $$ = FrequencyDatePeriodSemanticAction($1); }
 	;
 
-frequency: MENSUAL { $$ = frequencySemanticAction(FREQUENCY_MONTHLY); }
-	| SEMANAL { $$ = frequencySemanticAction(FREQUENCY_WEEKLY); }
-	| ANUAL { $$ = frequencySemanticAction(FREQUENCY_YEARLY); }
+frequency: MENSUAL { $$ = FrequencySemanticAction(FREQUENCY_MONTHLY); }
+	| SEMANAL { $$ = FrequencySemanticAction(FREQUENCY_WEEKLY); }
+	| ANUAL { $$ = FrequencySemanticAction(FREQUENCY_YEARLY); }
 	;
 
-editFields: editFields editField { $$ = consEditFieldsSemanticAction($1, $2); }
-	| editField { $$ = singleEditFieldSemanticAction($1); }
+editFields: editFields editField { $$ = ConstructEditFieldsSemanticAction($1, $2); }
+	| editField { $$ = SingleEditFieldSemanticAction($1); }
 	;
 
-editField: MONTO NUMERO { $$ = amountEditFieldSemanticAction($2); }
-	| CATEGORIA ID { $$ = categoryEditFieldSemanticAction($2); }
-	| FECHA date { $$ = dateEditFieldSemanticAction($2); }
-	| DESCRIPCION STRING { $$ = descriptionEditFieldSemanticAction($2); }
+editField: MONTO NUMERO { $$ = AmountEditFieldSemanticAction($2); }
+	| CATEGORIA ID { $$ = CategoryEditFieldSemanticAction($2); }
+	| FECHA date { $$ = DateEditFieldSemanticAction($2); }
+	| DESCRIPCION STRING { $$ = DescriptionEditFieldSemanticAction($2); }
 	;
 
-date: DATE { $$ = stringDateSemanticAction($1); }
-	| HOY { $$ = relativeDateSemanticAction(DATE_KIND_TODAY); }
-	| AYER { $$ = relativeDateSemanticAction(DATE_KIND_YESTERDAY); }
-	| MANIANA { $$ = relativeDateSemanticAction(DATE_KIND_TOMORROW); }
+date: DATE { $$ = StringDateSemanticAction($1); }
+	| HOY { $$ = RelativeDateSemanticAction(DATE_KIND_TODAY); }
+	| AYER { $$ = RelativeDateSemanticAction(DATE_KIND_YESTERDAY); }
+	| MANIANA { $$ = RelativeDateSemanticAction(DATE_KIND_TOMORROW); }
 	;
 
-reportFormat: HTML { $$ = reportFormatSemanticAction(REPORT_FORMAT_HTML); }
-	| TEXTO_PLANO { $$ = reportFormatSemanticAction(REPORT_FORMAT_PLAIN_TEXT); }
-	| PDF { $$ = reportFormatSemanticAction(REPORT_FORMAT_PDF); }
+reportFormat: HTML { $$ = ReportFormatSemanticAction(REPORT_FORMAT_HTML); }
+	| TEXTO_PLANO { $$ = ReportFormatSemanticAction(REPORT_FORMAT_PLAIN_TEXT); }
+	| PDF { $$ = ReportFormatSemanticAction(REPORT_FORMAT_PDF); }
 	;
 
 %%
