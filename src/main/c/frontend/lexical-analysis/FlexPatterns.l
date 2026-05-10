@@ -10,111 +10,80 @@
 
 %{
 
-/**
- * @see https://westes.github.io/flex/manual/Definitions-Section.html#Definitions-Section
- */
-
-extern CompilationStatus DateLexemeAction();
-extern CompilationStatus DescripcionLexemeAction(FlexContext context);
-extern CompilationStatus EOFLexemeAction();
-extern CompilationStatus EnterMultilineCommentLexemeAction(FlexContext context);
-extern CompilationStatus IdentifierLexemeAction();
-extern CompilationStatus IgnoredLexemeAction();
-extern CompilationStatus KeywordLexemeAction(TokenLabel label);
-extern CompilationStatus LeaveMultilineCommentLexemeAction();
-extern CompilationStatus LeaveStringContextLexemeAction();
-extern CompilationStatus NumeroLexemeAction();
-extern CompilationStatus StringLexemeAction();
-extern CompilationStatus UnknownLexemeAction();
+extern CompilationStatus dateLiteralLexemeAction();
+extern CompilationStatus descriptionKeywordLexemeAction(FlexContext context);
+extern CompilationStatus eofLexemeAction();
+extern CompilationStatus enterMultilineCommentLexemeAction(FlexContext context);
+extern CompilationStatus identifierLexemeAction();
+extern CompilationStatus ignoredLexemeAction();
+extern CompilationStatus keywordLexemeAction(TokenLabel label);
+extern CompilationStatus leaveMultilineCommentLexemeAction();
+extern CompilationStatus leaveStringContextLexemeAction();
+extern CompilationStatus integerLiteralLexemeAction();
+extern CompilationStatus stringLineLexemeAction();
+extern CompilationStatus unknownLexemeAction();
 
 %}
 
-/**
- * Case-insensitive matching for all ASCII patterns.
- *
- * @see https://westes.github.io/flex/manual/Scanner-Options.html
- */
 %option case-insensitive
 
-/**
- * Flex contexts (a.k.a. start conditions).
- *
- * @see https://westes.github.io/flex/manual/Start-Conditions.html
- */
 %x MULTILINE_COMMENT
 %x STRING_LINE_CONTEXT
 
-/**
- * Reusable patterns.
- *
- * @see https://westes.github.io/flex/manual/Matching.html
- * @see https://westes.github.io/flex/manual/Patterns.html
- */
 whitespace		[[:space:]]+
 digit			[0-9]
 letter			[a-zA-Z]
 
 %%
 
-%{
+"/*"								{ return enterMultilineCommentLexemeAction(MULTILINE_COMMENT); }
+"//"[^\n]*							{ return ignoredLexemeAction(); }
+<MULTILINE_COMMENT>"*/"				{ return leaveMultilineCommentLexemeAction(); }
+<MULTILINE_COMMENT>[^*]+			{ return ignoredLexemeAction(); }
+<MULTILINE_COMMENT>.				{ return ignoredLexemeAction(); }
 
-/**
- * @see https://westes.github.io/flex/manual/Rules-Section.html#Rules-Section
- */
+<STRING_LINE_CONTEXT>[^\n]+			{ return stringLineLexemeAction(); }
+<STRING_LINE_CONTEXT>"\n"			{ return leaveStringContextLexemeAction(); }
 
-%}
+"descripci"(\xc3\xb3|\xc3\x93|"o")"n"				{ return descriptionKeywordLexemeAction(STRING_LINE_CONTEXT); }
+"suscripci"(\xc3\xb3|\xc3\x93|"o")"n"				{ return keywordLexemeAction(SUBSCRIPTION); }
+"categor"(\xc3\xad|\xc3\x8d|"i")"a"				{ return keywordLexemeAction(CATEGORY); }
+("ma"(\xc3\xb1|\xc3\x91)"ana")|"maniana"				{ return keywordLexemeAction(KW_TOMORROW); }
+"divisa"							{ return keywordLexemeAction(CURRENCY); }
+"gasto"								{ return keywordLexemeAction(EXPENSE); }
+"ingreso"							{ return keywordLexemeAction(INCOME); }
+"consultar"							{ return keywordLexemeAction(QUERY); }
+"editar"							{ return keywordLexemeAction(EDIT); }
+"eliminar"							{ return keywordLexemeAction(DELETE); }
+"reporte"							{ return keywordLexemeAction(REPORT); }
+"finalizar"							{ return keywordLexemeAction(FINALIZE); }
+"cuotas"							{ return keywordLexemeAction(INSTALLMENTS); }
+"fecha"								{ return keywordLexemeAction(DATE_KEYWORD); }
+"monto"								{ return keywordLexemeAction(AMOUNT_KEYWORD); }
+"mensual"							{ return keywordLexemeAction(PERIOD_MONTHLY); }
+"semanal"							{ return keywordLexemeAction(PERIOD_WEEKLY); }
+"anual"								{ return keywordLexemeAction(PERIOD_YEARLY); }
+"hoy"								{ return keywordLexemeAction(KW_TODAY); }
+"ayer"								{ return keywordLexemeAction(KW_YESTERDAY); }
+"desde"								{ return keywordLexemeAction(KW_FROM); }
+"hasta"								{ return keywordLexemeAction(KW_UNTIL); }
+"html"								{ return keywordLexemeAction(HTML); }
+"texto_plano"						{ return keywordLexemeAction(PLAIN_TEXT); }
+"texto"[ \t]+"plano"					{ return keywordLexemeAction(PLAIN_TEXT); }
+"pdf"								{ return keywordLexemeAction(PDF); }
 
-"/*"								{ return EnterMultilineCommentLexemeAction(MULTILINE_COMMENT); }
-"//"[^\n]*							{ return IgnoredLexemeAction(); }
-<MULTILINE_COMMENT>"*/"				{ return LeaveMultilineCommentLexemeAction(); }
-<MULTILINE_COMMENT>[^*]+			{ return IgnoredLexemeAction(); }
-<MULTILINE_COMMENT>.				{ return IgnoredLexemeAction(); }
+{digit}{2}"-"{digit}{2}"-"{digit}{4}			{ return dateLiteralLexemeAction(); }
 
-<STRING_LINE_CONTEXT>[^\n]+			{ return StringLexemeAction(); }
-<STRING_LINE_CONTEXT>"\n"			{ return LeaveStringContextLexemeAction(); }
+{digit}+							{ return integerLiteralLexemeAction(); }
 
-"descripci"(\xc3\xb3|\xc3\x93|"o")"n"				{ return DescripcionLexemeAction(STRING_LINE_CONTEXT); }
-"suscripci"(\xc3\xb3|\xc3\x93|"o")"n"				{ return KeywordLexemeAction(SUSCRIPCION); }
-"categor"(\xc3\xad|\xc3\x8d|"i")"a"				{ return KeywordLexemeAction(CATEGORIA); }
-("ma"(\xc3\xb1|\xc3\x91)"ana")|"maniana"				{ return KeywordLexemeAction(MANIANA); }
-"divisa"							{ return KeywordLexemeAction(DIVISA); }
-"gasto"								{ return KeywordLexemeAction(GASTO); }
-"ingreso"							{ return KeywordLexemeAction(INGRESO); }
-"consultar"							{ return KeywordLexemeAction(CONSULTAR); }
-"editar"							{ return KeywordLexemeAction(EDITAR); }
-"eliminar"							{ return KeywordLexemeAction(ELIMINAR); }
-"reporte"							{ return KeywordLexemeAction(REPORTE); }
-"finalizar"							{ return KeywordLexemeAction(FINALIZAR); }
-"cuotas"							{ return KeywordLexemeAction(CUOTAS); }
-"fecha"								{ return KeywordLexemeAction(FECHA); }
-"monto"								{ return KeywordLexemeAction(MONTO); }
-"mensual"							{ return KeywordLexemeAction(MENSUAL); }
-"semanal"							{ return KeywordLexemeAction(SEMANAL); }
-"anual"								{ return KeywordLexemeAction(ANUAL); }
-"hoy"								{ return KeywordLexemeAction(HOY); }
-"ayer"								{ return KeywordLexemeAction(AYER); }
-"desde"								{ return KeywordLexemeAction(DESDE); }
-"hasta"								{ return KeywordLexemeAction(HASTA); }
-"html"								{ return KeywordLexemeAction(HTML); }
-"texto_plano"						{ return KeywordLexemeAction(TEXTO_PLANO); }
-"pdf"								{ return KeywordLexemeAction(PDF); }
+({letter}|\xc3[\x80-\xbf])({letter}|{digit}|"_"|\xc3[\x80-\xbf])*		{ return identifierLexemeAction(); }
 
-{digit}{2}"-"{digit}{2}"-"{digit}{4}			{ return DateLexemeAction(); }
+{whitespace}						{ return ignoredLexemeAction(); }
+.									{ return unknownLexemeAction(); }
 
-{digit}+							{ return NumeroLexemeAction(); }
-
-({letter}|\xc3[\x80-\xbf])({letter}|{digit}|"_"|\xc3[\x80-\xbf])*		{ return IdentifierLexemeAction(); }
-
-{whitespace}						{ return IgnoredLexemeAction(); }
-.									{ return UnknownLexemeAction(); }
-
-<<EOF>>								{ return EOFLexemeAction(); }
+<<EOF>>								{ return eofLexemeAction(); }
 
 %%
-
-/**
- * @see https://westes.github.io/flex/manual/User-Code-Section.html#User-Code-Section
- */
 
 #include "FlexActions.h"
 #include "FlexExport.h"

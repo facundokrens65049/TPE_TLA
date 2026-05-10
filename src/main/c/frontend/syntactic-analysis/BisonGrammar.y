@@ -4,19 +4,10 @@
 #include "AbstractSyntaxTree.h"
 #include "BisonActions.h"
 
-/**
- * The error reporting function for Bison parser.
- *
- * @todo Add location to the grammar and "pushToken" API function.
- *
- * @see https://www.gnu.org/software/bison/manual/html_node/Error-Reporting-Function.html
- * @see https://www.gnu.org/software/bison/manual/html_node/Tracking-Locations.html
- */
 void yyerror(const YYLTYPE * location, const char * message) {}
 
 %}
 
-// You touch this, and you die.
 %define api.pure full
 %define api.push-pull push
 %define api.value.union.name SemanticValue
@@ -24,246 +15,223 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %locations
 
 %union {
-	/** Terminals. */
-
 	signed int integer;
 	TokenLabel token;
 	char * string;
 
-	/** Non-terminals. */
-
 	Program * program;
-	Sentences * sentences;
-	Sentence * sentence;
-	DivisaSentence * divisaSentence;
-	GastoSentence * gastoSentence;
-	IngresoSentence * ingresoSentence;
-	SuscripcionSentence * suscripcionSentence;
-	ConsultaSentence * consultaSentence;
-	EditarSentence * editarSentence;
-	EliminarSentence * eliminarSentence;
-	ReporteSentence * reporteSentence;
-	FinalizarSentence * finalizarSentence;
-	OptionalCuotas * optionalCuotas;
-	OptionalCategoria * optionalCategoria;
-	OptionalFecha * optionalFecha;
-	OptionalDesde * optionalDesde;
-	OptionalHasta * optionalHasta;
-	OptionalDescripcion * optionalDescripcion;
-	PeriodoOFechas * periodoOFechas;
-	Frecuencia * frecuencia;
-	CamposEditar * camposEditar;
-	CampoEditar * campoEditar;
-	Fecha * fecha;
-	Formato * formato;
+	StatementList * statementList;
+	Statement * statement;
+	CurrencyStatement * currencyStmt;
+	ExpenseStatement * expenseStmt;
+	IncomeStatement * incomeStmt;
+	SubscriptionStatement * subscriptionStmt;
+	QueryStatement * queryStmt;
+	EditStatement * editStmt;
+	DeleteStatement * deleteStmt;
+	ReportStatement * reportStmt;
+	FinalizeStatement * finalizeStmt;
+	OptionalInstallments * optionalInstallments;
+	OptionalCategory * optionalCategory;
+	OptionalOperationDate * optionalOperationDate;
+	OptionalStartDate * optionalStartDate;
+	OptionalEndDate * optionalEndDate;
+	OptionalDescription * optionalDescription;
+	DateFilter * dateFilter;
+	PredefinedPeriod * predefinedPeriod;
+	EditFieldList * editFields;
+	EditField * editField;
+	DateValue * dateValue;
+	ReportFormat * reportFormat;
 }
 
-/**
- * Destructors. This functions are executed after the parsing ends, so if the
- * AST must be used in the following phases of the compiler you shouldn't used
- * this approach for the AST root node ("program" non-terminal, in this
- * grammar), or it will drop the entire tree even if the parsing succeeds.
- *
- * @see https://www.gnu.org/software/bison/manual/html_node/Destructor-Decl.html
- */
-/* Destructors */
 %destructor { free($$); } <string>
-%destructor { destroySentences($$); } <sentences>
-%destructor { destroySentence($$); } <sentence>
-%destructor { destroyDivisaSentence($$); } <divisaSentence>
-%destructor { destroyGastoSentence($$); } <gastoSentence>
-%destructor { destroyIngresoSentence($$); } <ingresoSentence>
-%destructor { destroySuscripcionSentence($$); } <suscripcionSentence>
-%destructor { destroyConsultaSentence($$); } <consultaSentence>
-%destructor { destroyEditarSentence($$); } <editarSentence>
-%destructor { destroyEliminarSentence($$); } <eliminarSentence>
-%destructor { destroyReporteSentence($$); } <reporteSentence>
-%destructor { destroyFinalizarSentence($$); } <finalizarSentence>
-%destructor { destroyOptionalCuotas($$); } <optionalCuotas>
-%destructor { destroyOptionalCategoria($$); } <optionalCategoria>
-%destructor { destroyOptionalFecha($$); } <optionalFecha>
-%destructor { destroyOptionalDesde($$); } <optionalDesde>
-%destructor { destroyOptionalHasta($$); } <optionalHasta>
-%destructor { destroyOptionalDescripcion($$); } <optionalDescripcion>
-%destructor { destroyPeriodoOFechas($$); } <periodoOFechas>
-%destructor { destroyFrecuencia($$); } <frecuencia>
-%destructor { destroyCamposEditar($$); } <camposEditar>
-%destructor { destroyCampoEditar($$); } <campoEditar>
-%destructor { destroyFecha($$); } <fecha>
-%destructor { destroyFormato($$); } <formato>
+%destructor { destroyStatementList($$); } <statementList>
+%destructor { destroyStatement($$); } <statement>
+%destructor { destroyCurrencyStatement($$); } <currencyStmt>
+%destructor { destroyExpenseStatement($$); } <expenseStmt>
+%destructor { destroyIncomeStatement($$); } <incomeStmt>
+%destructor { destroySubscriptionStatement($$); } <subscriptionStmt>
+%destructor { destroyQueryStatement($$); } <queryStmt>
+%destructor { destroyEditStatement($$); } <editStmt>
+%destructor { destroyDeleteStatement($$); } <deleteStmt>
+%destructor { destroyReportStatement($$); } <reportStmt>
+%destructor { destroyFinalizeStatement($$); } <finalizeStmt>
+%destructor { destroyOptionalInstallments($$); } <optionalInstallments>
+%destructor { destroyOptionalCategory($$); } <optionalCategory>
+%destructor { destroyOptionalOperationDate($$); } <optionalOperationDate>
+%destructor { destroyOptionalStartDate($$); } <optionalStartDate>
+%destructor { destroyOptionalEndDate($$); } <optionalEndDate>
+%destructor { destroyOptionalDescription($$); } <optionalDescription>
+%destructor { destroyDateFilter($$); } <dateFilter>
+%destructor { destroyPredefinedPeriod($$); } <predefinedPeriod>
+%destructor { destroyEditFieldList($$); } <editFields>
+%destructor { destroyEditField($$); } <editField>
+%destructor { destroyDateValue($$); } <dateValue>
+%destructor { destroyReportFormat($$); } <reportFormat>
 
-/* Internal tokens used by FlexActions for logging (never pushed to the parser) */
 %token <token> IGNORED
 %token <token> UNKNOWN
 %token <token> OPEN_COMMENT
 %token <token> CLOSE_COMMENT
 
-/* TERMINALS */
-%token <integer> NUMERO
+%token <integer> NUMBER
 %token <string> STRING
 %token <string> DATE
 %token <string> ID
-%token <token> DIVISA
-%token <token> GASTO
-%token <token> INGRESO
-%token <token> SUSCRIPCION
-%token <token> CONSULTAR
-%token <token> EDITAR
-%token <token> ELIMINAR
-%token <token> REPORTE
-%token <token> FINALIZAR
-%token <token> CUOTAS
-%token <token> CATEGORIA
-%token <token> FECHA
-%token <token> DESCRIPCION
-%token <token> MONTO
-%token <token> MENSUAL
-%token <token> SEMANAL
-%token <token> ANUAL
-%token <token> HOY
-%token <token> AYER
-%token <token> MANIANA
-%token <token> DESDE
-%token <token> HASTA
+%token <token> CURRENCY
+%token <token> EXPENSE
+%token <token> INCOME
+%token <token> SUBSCRIPTION
+%token <token> QUERY
+%token <token> EDIT
+%token <token> DELETE
+%token <token> REPORT
+%token <token> FINALIZE
+%token <token> INSTALLMENTS
+%token <token> CATEGORY
+%token <token> DATE_KEYWORD
+%token <token> DESCRIPTION_KEYWORD
+%token <token> AMOUNT_KEYWORD
+%token <token> PERIOD_MONTHLY
+%token <token> PERIOD_WEEKLY
+%token <token> PERIOD_YEARLY
+%token <token> KW_TODAY
+%token <token> KW_YESTERDAY
+%token <token> KW_TOMORROW
+%token <token> KW_FROM
+%token <token> KW_UNTIL
 %token <token> HTML
-%token <token> TEXTO_PLANO
+%token <token> PLAIN_TEXT
 %token <token> PDF
 
-/* NON-TERMINALS */
 %type <program> program
-%type <sentences> sentences
-%type <sentence> sentence
-%type <divisaSentence> divisaSentence
-%type <gastoSentence> gastoSentence
-%type <ingresoSentence> ingresoSentence
-%type <suscripcionSentence> suscripcionSentence
-%type <consultaSentence> consultaSentence
-%type <editarSentence> editarSentence
-%type <eliminarSentence> eliminarSentence
-%type <reporteSentence> reporteSentence
-%type <finalizarSentence> finalizarSentence
-%type <optionalCuotas> optionalCuotas
-%type <optionalCategoria> optionalCategoria
-%type <optionalFecha> optionalFecha
-%type <optionalDesde> optionalDesde
-%type <optionalHasta> optionalHasta
-%type <optionalDescripcion> optionalDescripcion
-%type <periodoOFechas> periodoOFechas
-%type <frecuencia> frecuencia
-%type <camposEditar> camposEditar
-%type <campoEditar> campoEditar
-%type <fecha> fecha
-%type <formato> formato
-
-/**
- * Precedence and associativity.
- *
- * @see https://en.cppreference.com/w/cpp/language/operator_precedence.html
- * @see https://www.gnu.org/software/bison/manual/html_node/Precedence.html
- */
+%type <statementList> statementList
+%type <statement> statement
+%type <currencyStmt> currencyStmt
+%type <expenseStmt> expenseStmt
+%type <incomeStmt> incomeStmt
+%type <subscriptionStmt> subscriptionStmt
+%type <queryStmt> queryStmt
+%type <editStmt> editStmt
+%type <deleteStmt> deleteStmt
+%type <reportStmt> reportStmt
+%type <finalizeStmt> finalizeStmt
+%type <optionalInstallments> optionalInstallments
+%type <optionalCategory> optionalCategory
+%type <optionalOperationDate> optionalOperationDate
+%type <optionalStartDate> optionalStartDate
+%type <optionalEndDate> optionalEndDate
+%type <optionalDescription> optionalDescription
+%type <dateFilter> dateFilter
+%type <predefinedPeriod> predefinedPeriod
+%type <editFields> editFields
+%type <editField> editField
+%type <dateValue> dateValue
+%type <reportFormat> reportFormat
 
 %%
 
-program: sentences 						{ $$ = SentencesProgramSemanticAction($1); }
+program: statementList						{ $$ = buildProgramSemanticAction($1); }
 	;
 
-sentences: sentences sentence			{ $$ = SentencesSentenceSemanticAction($1, $2); }
-	| sentence							{ $$ = SentenceSemanticAction($1); }
+statementList: statementList statement			{ $$ = appendStatementListSemanticAction($1, $2); }
+	| statement					{ $$ = singletonStatementListSemanticAction($1); }
 	;
 
-sentence: divisaSentence 				{ $$ = DivisaSentenceSentenceSemanticAction($1); }
-	| gastoSentence 					{ $$ = GastoSentenceSentenceSemanticAction($1); }
-	| ingresoSentence 					{ $$ = IngresoSentenceSentenceSemanticAction($1); }
-	| suscripcionSentence 				{ $$ = SuscripcionSentenceSentenceSemanticAction($1); }
-	| consultaSentence 					{ $$ = ConsultaSentenceSentenceSemanticAction($1); }
-	| editarSentence 					{ $$ = EditarSentenceSentenceSemanticAction($1); }
-	| eliminarSentence 					{ $$ = EliminarSentenceSentenceSemanticAction($1); }
-	| reporteSentence 					{ $$ = ReporteSentenceSentenceSemanticAction($1); }
-	| finalizarSentence 				{ $$ = FinalizarSentenceSentenceSemanticAction($1); }
+statement: currencyStmt 				{ $$ = wrapCurrencyStatementSemanticAction($1); }
+	| expenseStmt 					{ $$ = wrapExpenseStatementSemanticAction($1); }
+	| incomeStmt 					{ $$ = wrapIncomeStatementSemanticAction($1); }
+	| subscriptionStmt 				{ $$ = wrapSubscriptionStatementSemanticAction($1); }
+	| queryStmt 					{ $$ = wrapQueryStatementSemanticAction($1); }
+	| editStmt 					{ $$ = wrapEditStatementSemanticAction($1); }
+	| deleteStmt 					{ $$ = wrapDeleteStatementSemanticAction($1); }
+	| reportStmt 					{ $$ = wrapReportStatementSemanticAction($1); }
+	| finalizeStmt 					{ $$ = wrapFinalizeStatementSemanticAction($1); }
 	;
 
-divisaSentence: DIVISA ID 				{$$ = DivisaSentenceSemanticAction($2); }
+currencyStmt: CURRENCY ID 				{ $$ = currencyStatementSemanticAction($2); }
 	;
 
-gastoSentence: GASTO NUMERO optionalCuotas optionalCategoria optionalFecha optionalDescripcion {$$ = GastoSentenceSemanticAction($2, $3, $4, $5, $6); }
+expenseStmt: EXPENSE NUMBER optionalInstallments optionalCategory optionalOperationDate optionalDescription
+		{ $$ = expenseStatementSemanticAction($2, $3, $4, $5, $6); }
 	;
 
-
-ingresoSentence: INGRESO NUMERO optionalCategoria optionalFecha optionalDescripcion {$$ = IngresoSentenceSemanticAction($2, $3, $4, $5); }
+incomeStmt: INCOME NUMBER optionalCategory optionalOperationDate optionalDescription
+		{ $$ = incomeStatementSemanticAction($2, $3, $4, $5); }
 	;
 
-	
-suscripcionSentence: SUSCRIPCION NUMERO frecuencia optionalCategoria optionalDesde optionalHasta optionalDescripcion { $$ = SuscripcionSentenceSemanticAction($2, $3, $4, $5, $6, $7); }
+subscriptionStmt: SUBSCRIPTION NUMBER predefinedPeriod optionalCategory optionalStartDate optionalEndDate optionalDescription
+		{ $$ = subscriptionStatementSemanticAction($2, $3, $4, $5, $6, $7); }
 	;
 
-consultaSentence: CONSULTAR periodoOFechas { $$ = ConsultaSentenceSemanticAction($2); }
+queryStmt: QUERY dateFilter { $$ = queryStatementSemanticAction($2); }
 	;
 
-
-editarSentence: EDITAR NUMERO camposEditar { $$ = EditarSentenceSemanticAction($2, $3); }
+editStmt: EDIT NUMBER editFields { $$ = editStatementSemanticAction($2, $3); }
 	;
 
-eliminarSentence: ELIMINAR NUMERO { $$ = EliminarSentenceSemanticAction($2); }
+deleteStmt: DELETE NUMBER { $$ = deleteStatementSemanticAction($2); }
 	;
 
-reporteSentence: REPORTE formato periodoOFechas { $$ = ReporteSentenceSemanticAction($2, $3); }
+reportStmt: REPORT reportFormat dateFilter { $$ = reportStatementSemanticAction($2, $3); }
 	;
 
-finalizarSentence: FINALIZAR NUMERO { $$ = FinalizarSentenceSemanticAction($2); }
+finalizeStmt: FINALIZE NUMBER { $$ = finalizeStatementSemanticAction($2); }
 	;
 
-optionalCuotas: CUOTAS NUMERO { $$ = PresentOptionalCuotasSemanticAction($2); }
-	| %empty { $$ = EmptyOptionalCuotasSemanticAction(); }
+optionalInstallments: INSTALLMENTS NUMBER { $$ = presentOptionalInstallmentsSemanticAction($2); }
+	| %empty { $$ = emptyOptionalInstallmentsSemanticAction(); }
 	;
 
-optionalCategoria: CATEGORIA ID { $$ = PresentOptionalCategoriaSemanticAction($2); }
-	| %empty { $$ = EmptyOptionalCategoriaSemanticAction(); }
+optionalCategory: CATEGORY ID { $$ = presentOptionalCategorySemanticAction($2); }
+	| %empty { $$ = emptyOptionalCategorySemanticAction(); }
 	;
 
-optionalFecha: FECHA fecha { $$ = PresentOptionalFechaSemanticAction($2); }
-	| %empty { $$ = EmptyOptionalFechaSemanticAction(); }
+optionalOperationDate: DATE_KEYWORD dateValue { $$ = presentOptionalOperationDateSemanticAction($2); }
+	| %empty { $$ = emptyOptionalOperationDateSemanticAction(); }
 	;
 
-optionalDesde: DESDE fecha { $$ = PresentOptionalDesdeSemanticAction($2); }
-	| %empty { $$ = EmptyOptionalDesdeSemanticAction(); }
+optionalStartDate: KW_FROM dateValue { $$ = presentOptionalStartDateSemanticAction($2); }
+	| %empty { $$ = emptyOptionalStartDateSemanticAction(); }
 	;
 
-optionalHasta: HASTA fecha { $$ = PresentOptionalHastaSemanticAction($2); }
-	| %empty { $$ = EmptyOptionalHastaSemanticAction(); }
+optionalEndDate: KW_UNTIL dateValue { $$ = presentOptionalEndDateSemanticAction($2); }
+	| %empty { $$ = emptyOptionalEndDateSemanticAction(); }
 	;
 
-optionalDescripcion: DESCRIPCION STRING { $$ = PresentOptionalDescripcionSemanticAction($2); }
-	| %empty { $$ = EmptyOptionalDescripcionSemanticAction(); }
+optionalDescription: DESCRIPTION_KEYWORD STRING { $$ = presentOptionalDescriptionSemanticAction($2); }
+	| %empty { $$ = emptyOptionalDescriptionSemanticAction(); }
 	;
 
-periodoOFechas: DESDE fecha HASTA fecha { $$ = RangoPeriodoOFechasSemanticAction($2, $4); }
-	| frecuencia { $$ = FrecuenciaPeriodoOFechasSemanticAction($1); }
+dateFilter: KW_FROM dateValue KW_UNTIL dateValue { $$ = dateFilterRangeSemanticAction($2, $4); }
+	| predefinedPeriod { $$ = dateFilterPredefinedSemanticAction($1); }
 	;
 
-frecuencia: MENSUAL { $$ = FrecuenciaSemanticAction(MENSUAL_TIPO); }
-	| SEMANAL { $$ = FrecuenciaSemanticAction(SEMANAL_TIPO); }
-	| ANUAL { $$ = FrecuenciaSemanticAction(ANUAL_TIPO); }
+predefinedPeriod: PERIOD_MONTHLY { $$ = predefinedPeriodSemanticAction(PREDEFINED_PERIOD_MONTHLY); }
+	| PERIOD_WEEKLY { $$ = predefinedPeriodSemanticAction(PREDEFINED_PERIOD_WEEKLY); }
+	| PERIOD_YEARLY { $$ = predefinedPeriodSemanticAction(PREDEFINED_PERIOD_YEARLY); }
 	;
 
-camposEditar: camposEditar campoEditar { $$ = CamposCampoEditarSemanticAction($1, $2); }
-	| campoEditar { $$ = CampoEditarSemanticAction($1); }
+editFields: editFields editField { $$ = appendEditFieldListSemanticAction($1, $2); }
+	| editField { $$ = singletonEditFieldListSemanticAction($1); }
 	;
 
-campoEditar: MONTO NUMERO { $$ = MontoCampoEditarSemanticAction($2); }
-	| CATEGORIA ID { $$ = CategoriaCampoEditarSemanticAction($2); }
-	| FECHA fecha { $$ = FechaCampoEditarSemanticAction($2); }
-	| DESCRIPCION STRING { $$ = DescripcionCampoEditarSemanticAction($2); }
+editField: AMOUNT_KEYWORD NUMBER { $$ = editFieldAmountSemanticAction($2); }
+	| CATEGORY ID { $$ = editFieldCategorySemanticAction($2); }
+	| DATE_KEYWORD dateValue { $$ = editFieldDateValueSemanticAction($2); }
+	| DESCRIPTION_KEYWORD STRING { $$ = editFieldDescriptionSemanticAction($2); }
 	;
 
-fecha: DATE { $$ = StringFechaSemanticAction($1); }
-	| HOY { $$ = RelativaFechaSemanticAction(HOY_TIPO); }
-	| AYER { $$ = RelativaFechaSemanticAction(AYER_TIPO); }
-	| MANIANA { $$ = RelativaFechaSemanticAction(MANIANA_TIPO); }
+dateValue: DATE { $$ = absoluteDateStringSemanticAction($1); }
+	| KW_TODAY { $$ = relativeDateSemanticAction(DATE_VALUE_TODAY); }
+	| KW_YESTERDAY { $$ = relativeDateSemanticAction(DATE_VALUE_YESTERDAY); }
+	| KW_TOMORROW { $$ = relativeDateSemanticAction(DATE_VALUE_TOMORROW); }
 	;
 
-formato: HTML { $$ = FormatoSemanticAction(HTML_TIPO); }
-	| TEXTO_PLANO { $$ = FormatoSemanticAction(TEXTO_PLANO_TIPO); }
-	| PDF { $$ = FormatoSemanticAction(PDF_TIPO); }
+reportFormat: HTML { $$ = reportFormatSemanticAction(REPORT_FORMAT_HTML); }
+	| PLAIN_TEXT { $$ = reportFormatSemanticAction(REPORT_FORMAT_PLAIN_TEXT); }
+	| PDF { $$ = reportFormatSemanticAction(REPORT_FORMAT_PDF); }
 	;
 
 %%

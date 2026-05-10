@@ -101,3 +101,52 @@ char * indentation(const char character, const unsigned int level, const unsigne
 	}
 	return indentation;
 }
+
+char * normalizeFinancialCategory(const char * raw) {
+	if (raw == NULL) {
+		return NULL;
+	}
+	const size_t cap = strlen(raw) * 3u + 1u;
+	char * const out = calloc(cap, sizeof(char));
+	if (out == NULL) {
+		return strdup(raw);
+	}
+	char * w = out;
+	const unsigned char * s = (const unsigned char *) raw;
+	while (*s != '\0') {
+		if (*s < 128u) {
+			*w++ = (char) (isupper((int) *s) ? tolower((int) *s) : (int) *s);
+			s++;
+			continue;
+		}
+		if (*s == 0xC3u && s[1] != '\0') {
+			const unsigned char c2 = s[1];
+			char mapped = '\0';
+			switch (c2) {
+				case 0xA1u: case 0xA0u: case 0xA2u: case 0xA3u: mapped = 'a'; break;
+				case 0xA9u: case 0xA8u: case 0xAAu: case 0xABu: mapped = 'e'; break;
+				case 0xADu: case 0xACu: case 0xAEu: case 0xAFu: mapped = 'i'; break;
+				case 0xB3u: case 0xB2u: case 0xB4u: case 0xB5u: mapped = 'o'; break;
+				case 0xBAu: case 0xB9u: case 0xBBu: mapped = 'u'; break;
+				case 0xBCu: mapped = 'u'; break;
+				case 0xB1u: mapped = 'n'; break;
+				case 0x81u: case 0x80u: case 0x82u: case 0x83u: mapped = 'a'; break;
+				case 0x89u: case 0x88u: case 0x8Au: case 0x8Bu: mapped = 'e'; break;
+				case 0x8Du: case 0x8Cu: case 0x8Eu: case 0x8Fu: mapped = 'i'; break;
+				case 0x93u: case 0x92u: case 0x94u: case 0x95u: mapped = 'o'; break;
+				case 0x9Au: case 0x99u: case 0x9Bu: case 0x9Cu: mapped = 'u'; break;
+				case 0x91u: mapped = 'n'; break;
+				case 0xA7u: case 0x87u: mapped = 'c'; break;
+				default: break;
+			}
+			if (mapped != '\0') {
+				*w++ = mapped;
+				s += 2;
+				continue;
+			}
+		}
+		*w++ = (char) *s++;
+	}
+	*w = '\0';
+	return out;
+}

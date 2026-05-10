@@ -8,258 +8,243 @@
 /** Initialize module's internal state. */
 ModuleDestructor initializeAbstractSyntaxTreeModule();
 
-/**
- * This type definitions allows self-referencing types (e.g., an expression
- * that is made of another expressions, such as talking about you in 3rd
- * person, but without the madness).
- */
+typedef enum ReportFormatKind ReportFormatKind;
+typedef enum DateValueKind DateValueKind;
+typedef enum PredefinedPeriodKind PredefinedPeriodKind;
+typedef enum DateFilterKind DateFilterKind;
+typedef enum EditFieldKind EditFieldKind;
+typedef enum StatementKind StatementKind;
 
-typedef enum FormatoTipo FormatoTipo;
-typedef enum FechaTipo FechaTipo;
-typedef enum FrecuenciaTipo FrecuenciaTipo;
-typedef enum PeriodoOFechasTipo PeriodoOFechasTipo;
-typedef enum CampoEditarTipo CampoEditarTipo;
-typedef enum SentenceType SentenceType;
-
-typedef struct Formato Formato;
-typedef struct Fecha Fecha;
-typedef struct CampoEditar CampoEditar;
-typedef struct CamposEditar CamposEditar;
-typedef struct Frecuencia Frecuencia;
-typedef struct PeriodoOFechas PeriodoOFechas;
-typedef struct OptionalDescripcion OptionalDescripcion;
-typedef struct OptionalHasta OptionalHasta;
-typedef struct OptionalDesde OptionalDesde;
-typedef struct OptionalFecha OptionalFecha;
-typedef struct OptionalCategoria OptionalCategoria;
-typedef struct OptionalCuotas OptionalCuotas;
-typedef struct FinalizarSentence FinalizarSentence;
-typedef struct ReporteSentence ReporteSentence;
-typedef struct EliminarSentence EliminarSentence;
-typedef struct EditarSentence EditarSentence;
-typedef struct ConsultaSentence ConsultaSentence;
-typedef struct SuscripcionSentence SuscripcionSentence;
-typedef struct IngresoSentence IngresoSentence;
-typedef struct GastoSentence GastoSentence;
-typedef struct DivisaSentence DivisaSentence;
-typedef struct Sentence Sentence;
-typedef struct Sentences Sentences;
+typedef struct ReportFormat ReportFormat;
+typedef struct DateValue DateValue;
+typedef struct EditField EditField;
+typedef struct EditFieldList EditFieldList;
+typedef struct PredefinedPeriod PredefinedPeriod;
+typedef struct DateFilter DateFilter;
+typedef struct OptionalDescription OptionalDescription;
+typedef struct OptionalEndDate OptionalEndDate;
+typedef struct OptionalStartDate OptionalStartDate;
+typedef struct OptionalOperationDate OptionalOperationDate;
+typedef struct OptionalCategory OptionalCategory;
+typedef struct OptionalInstallments OptionalInstallments;
+typedef struct FinalizeStatement FinalizeStatement;
+typedef struct ReportStatement ReportStatement;
+typedef struct DeleteStatement DeleteStatement;
+typedef struct EditStatement EditStatement;
+typedef struct QueryStatement QueryStatement;
+typedef struct SubscriptionStatement SubscriptionStatement;
+typedef struct IncomeStatement IncomeStatement;
+typedef struct ExpenseStatement ExpenseStatement;
+typedef struct CurrencyStatement CurrencyStatement;
+typedef struct Statement Statement;
+typedef struct StatementList StatementList;
 typedef struct Program Program;
 
-/**
- * Node types for the Abstract Syntax Tree (AST).
- */
-
-enum FormatoTipo {
-	HTML_TIPO,
-	TEXTO_PLANO_TIPO,
-	PDF_TIPO
+enum ReportFormatKind {
+	REPORT_FORMAT_HTML,
+	REPORT_FORMAT_PLAIN_TEXT,
+	REPORT_FORMAT_PDF
 };
 
-enum FechaTipo {
-	DATE_TIPO,
-	HOY_TIPO,
-	AYER_TIPO,
-	MANIANA_TIPO
+enum DateValueKind {
+	DATE_VALUE_ABSOLUTE,
+	DATE_VALUE_TODAY,
+	DATE_VALUE_YESTERDAY,
+	DATE_VALUE_TOMORROW
 };
 
-enum FrecuenciaTipo {
-	MENSUAL_TIPO,
-	SEMANAL_TIPO,
-	ANUAL_TIPO
+enum PredefinedPeriodKind {
+	PREDEFINED_PERIOD_MONTHLY,
+	PREDEFINED_PERIOD_WEEKLY,
+	PREDEFINED_PERIOD_YEARLY
 };
 
-enum PeriodoOFechasTipo {
-	RANGO_TIPO,
-	FRECUENCIA_TIPO
+enum DateFilterKind {
+	DATE_FILTER_RANGE,
+	DATE_FILTER_PREDEFINED_PERIOD
 };
 
-enum CampoEditarTipo {
-	MONTO_CAMPO,
-    CATEGORIA_CAMPO,
-    FECHA_CAMPO,
-    DESCRIPCION_CAMPO
+enum EditFieldKind {
+	EDIT_FIELD_AMOUNT,
+	EDIT_FIELD_CATEGORY,
+	EDIT_FIELD_DATE_VALUE,
+	EDIT_FIELD_DESCRIPTION
 };
 
-enum SentenceType {
-    DIVISA_SENTENCE,
-    GASTO_SENTENCE,
-    INGRESO_SENTENCE,
-    SUSCRIPCION_SENTENCE,
-    CONSULTAR_SENTENCE,
-    EDITAR_SENTENCE,
-    ELIMINAR_SENTENCE,
-    REPORTE_SENTENCE,
-    FINALIZAR_SENTENCE
+enum StatementKind {
+	STATEMENT_CURRENCY,
+	STATEMENT_EXPENSE,
+	STATEMENT_INCOME,
+	STATEMENT_SUBSCRIPTION,
+	STATEMENT_QUERY,
+	STATEMENT_EDIT,
+	STATEMENT_DELETE,
+	STATEMENT_REPORT,
+	STATEMENT_FINALIZE
 };
 
-struct Formato {
-	FormatoTipo formatoTipo;
+struct ReportFormat {
+	ReportFormatKind kind;
 };
 
-struct Fecha {
-    FechaTipo type;
-    union {
-        char * date;
-    };
+struct DateValue {
+	DateValueKind kind;
+	union {
+		char * absoluteText;
+	};
 };
 
-struct CampoEditar {
-    CampoEditarTipo type;
-    union {
-        int numero;
-        char * id;
-        Fecha * fecha;
-        char * descripcion;
-    };
+struct EditField {
+	EditFieldKind kind;
+	union {
+		int amount;
+		char * categoryId;
+		DateValue * dateValue;
+		char * descriptionText;
+	};
 };
 
-struct CamposEditar {
-    CampoEditar * campoEditar;
-    CamposEditar * next;
+struct EditFieldList {
+	EditField * field;
+	EditFieldList * next;
 };
 
-struct Frecuencia {
-    FrecuenciaTipo type;
+struct PredefinedPeriod {
+	PredefinedPeriodKind kind;
 };
 
-
-struct PeriodoOFechas {
-    PeriodoOFechasTipo type;
-    union {
-        struct {
-            Fecha * desde;
-            Fecha * hasta;
-        };
-        Frecuencia * frecuencia;
-    };
+struct DateFilter {
+	DateFilterKind kind;
+	union {
+		struct {
+			DateValue * rangeFrom;
+			DateValue * rangeTo;
+		};
+		PredefinedPeriod * period;
+	};
 };
 
-struct OptionalDescripcion {
-	char * descripcion;
+struct OptionalDescription {
+	char * text;
 };
 
-struct OptionalHasta {
-	Fecha * fecha;
+struct OptionalEndDate {
+	DateValue * dateValue;
 };
 
-struct OptionalDesde {
-	Fecha * fecha;
+struct OptionalStartDate {
+	DateValue * dateValue;
 };
 
-struct OptionalFecha {
-	Fecha * fecha;
+struct OptionalOperationDate {
+	DateValue * dateValue;
 };
 
-struct OptionalCategoria {
-	char * id;
+struct OptionalCategory {
+	char * identifier;
 };
 
-struct OptionalCuotas {
-	int numero;
+struct OptionalInstallments {
+	int count;
 };
 
-struct FinalizarSentence {
-	int numero;
+struct FinalizeStatement {
+	int operationId;
 };
 
-struct ReporteSentence {
-	Formato * formato;
-	PeriodoOFechas * periodoOFechas;
+struct ReportStatement {
+	ReportFormat * format;
+	DateFilter * dateFilter;
 };
 
-struct EliminarSentence {
-	int numero;
+struct DeleteStatement {
+	int operationId;
 };
 
-struct EditarSentence {
-	int numero;
-	CamposEditar * camposEditar;
+struct EditStatement {
+	int operationId;
+	EditFieldList * fields;
 };
 
-struct ConsultaSentence {
-	PeriodoOFechas * periodoOFechas;
+struct QueryStatement {
+	DateFilter * dateFilter;
 };
 
-struct SuscripcionSentence {
-	int numero;
-    Frecuencia * frecuencia;
-    OptionalCategoria * optionalCategoria;
-    OptionalDesde * optionalDesde;
-    OptionalHasta * optionalHasta;
-    OptionalDescripcion * optionalDescripcion;
+struct SubscriptionStatement {
+	int amount;
+	PredefinedPeriod * period;
+	OptionalCategory * optionalCategory;
+	OptionalStartDate * optionalStartDate;
+	OptionalEndDate * optionalEndDate;
+	OptionalDescription * optionalDescription;
 };
 
-struct IngresoSentence {
-	int numero;
-    OptionalCategoria * optionalCategoria;
-    OptionalFecha * optionalFecha;
-    OptionalDescripcion * optionalDescripcion;
+struct IncomeStatement {
+	int amount;
+	OptionalCategory * optionalCategory;
+	OptionalOperationDate * optionalOperationDate;
+	OptionalDescription * optionalDescription;
 };
 
-struct GastoSentence {
-    int numero;
-    OptionalCuotas * optionalCuotas;
-    OptionalCategoria * optionalCategoria;
-    OptionalFecha * optionalFecha;
-    OptionalDescripcion * optionalDescripcion;
+struct ExpenseStatement {
+	int amount;
+	OptionalInstallments * optionalInstallments;
+	OptionalCategory * optionalCategory;
+	OptionalOperationDate * optionalOperationDate;
+	OptionalDescription * optionalDescription;
 };
 
-struct DivisaSentence {
-	char * id;
+struct CurrencyStatement {
+	char * identifier;
 };
 
-struct Sentence {
-    SentenceType type;
-    union {
-        DivisaSentence * divisaSentence;
-        GastoSentence * gastoSentence;
-        IngresoSentence * ingresoSentence;
-        SuscripcionSentence * suscripcionSentence;
-        ConsultaSentence * consultaSentence;
-        EditarSentence * editarSentence;
-        EliminarSentence * eliminarSentence;
-        ReporteSentence * reporteSentence;
-        FinalizarSentence * finalizarSentence;
-    };
+struct Statement {
+	StatementKind kind;
+	union {
+		CurrencyStatement * currencyStatement;
+		ExpenseStatement * expenseStatement;
+		IncomeStatement * incomeStatement;
+		SubscriptionStatement * subscriptionStatement;
+		QueryStatement * queryStatement;
+		EditStatement * editStatement;
+		DeleteStatement * deleteStatement;
+		ReportStatement * reportStatement;
+		FinalizeStatement * finalizeStatement;
+	};
 };
 
-struct Sentences {
-    Sentence * sentence;
-    Sentences * next; // lista enlazada
+struct StatementList {
+	Statement * statement;
+	StatementList * next;
 };
 
 struct Program {
-    Sentences * sentences;
+	StatementList * statements;
 };
 
-/**
- * Node recursive super-duper-trambolik-destructors.
- */
-
-void destroyFormato(Formato * formato);
-void destroyFecha(Fecha * fecha);
-void destroyCampoEditar(CampoEditar * campoEditar);
-void destroyCamposEditar(CamposEditar * camposEditar);
-void destroyFrecuencia(Frecuencia * frecuencia);
-void destroyPeriodoOFechas(PeriodoOFechas * periodoOFechas);
-void destroyOptionalDescripcion(OptionalDescripcion * optionalDescripcion);
-void destroyOptionalHasta(OptionalHasta * optionalHasta);
-void destroyOptionalDesde(OptionalDesde * optionalDesde);
-void destroyOptionalFecha(OptionalFecha * optionalFecha);
-void destroyOptionalCategoria(OptionalCategoria * optionalCategoria);
-void destroyOptionalCuotas(OptionalCuotas * optionalCuotas);
-void destroyFinalizarSentence(FinalizarSentence * finalizarSentence);
-void destroyReporteSentence(ReporteSentence * reporteSentence);
-void destroyEliminarSentence(EliminarSentence * eliminarSentence);
-void destroyEditarSentence(EditarSentence * editarSentence);
-void destroyConsultaSentence(ConsultaSentence * consultaSentence);
-void destroySuscripcionSentence(SuscripcionSentence * suscripcionSentence);
-void destroyIngresoSentence(IngresoSentence * ingresoSentence);
-void destroyGastoSentence(GastoSentence * gastoSentence);
-void destroyDivisaSentence(DivisaSentence * divisaSentence);
-void destroySentence(Sentence * sentence);
-void destroySentences(Sentences * sentences);
+void destroyReportFormat(ReportFormat * format);
+void destroyDateValue(DateValue * dateValue);
+void destroyEditField(EditField * field);
+void destroyEditFieldList(EditFieldList * list);
+void destroyPredefinedPeriod(PredefinedPeriod * period);
+void destroyDateFilter(DateFilter * filter);
+void destroyOptionalDescription(OptionalDescription * optional);
+void destroyOptionalEndDate(OptionalEndDate * optional);
+void destroyOptionalStartDate(OptionalStartDate * optional);
+void destroyOptionalOperationDate(OptionalOperationDate * optional);
+void destroyOptionalCategory(OptionalCategory * optional);
+void destroyOptionalInstallments(OptionalInstallments * optional);
+void destroyFinalizeStatement(FinalizeStatement * statement);
+void destroyReportStatement(ReportStatement * statement);
+void destroyDeleteStatement(DeleteStatement * statement);
+void destroyEditStatement(EditStatement * statement);
+void destroyQueryStatement(QueryStatement * statement);
+void destroySubscriptionStatement(SubscriptionStatement * statement);
+void destroyIncomeStatement(IncomeStatement * statement);
+void destroyExpenseStatement(ExpenseStatement * statement);
+void destroyCurrencyStatement(CurrencyStatement * statement);
+void destroyStatement(Statement * statement);
+void destroyStatementList(StatementList * list);
 void destroyProgram(Program * program);
 
 #endif

@@ -152,7 +152,7 @@ CompilationStatus executeLexicalAnalysis(LexicalAnalyzer * lexicalAnalyzer) {
 		lexicalAnalyzer->scanner);
 }
 
-CompilationStatus executeSyntacticAnalysis() {
+CompilationStatus executeSyntaxAnalysis() {
 	logDebugging(_logger, "Parsing...");
 	CompilationStatus status = IN_PROGRESS;
 	while (status == IN_PROGRESS) {

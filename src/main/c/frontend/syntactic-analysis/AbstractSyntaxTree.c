@@ -20,248 +20,251 @@ ModuleDestructor initializeAbstractSyntaxTreeModule() {
 
 /* PUBLIC FUNCTIONS */
 
-void destroyFormato(Formato * formato){
+void destroyReportFormat(ReportFormat * format) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (formato != NULL) {
-		free(formato);
+	if (format != NULL) {
+		free(format);
 	}
 }
 
-void destroyFecha(Fecha * fecha){
+void destroyDateValue(DateValue * dateValue) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (fecha != NULL) {
-        if (fecha->type == DATE_TIPO) {
-            free(fecha->date);
-        }
-        free(fecha);
-    }
-}
-
-void destroyCampoEditar(CampoEditar * campoEditar){
-	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (campoEditar != NULL) {
-		switch (campoEditar->type) {
-			case MONTO_CAMPO:
-                break;
-            case CATEGORIA_CAMPO:
-                free(campoEditar->id);
-                break;
-            case FECHA_CAMPO:
-                destroyFecha(campoEditar->fecha);
-                break;
-            case DESCRIPCION_CAMPO:
-                free(campoEditar->descripcion);
-                break;
+	if (dateValue != NULL) {
+		if (dateValue->kind == DATE_VALUE_ABSOLUTE) {
+			free(dateValue->absoluteText);
 		}
-		free(campoEditar);
+		free(dateValue);
 	}
 }
 
-void destroyCamposEditar(CamposEditar * camposEditar){
+void destroyEditField(EditField * field) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (camposEditar != NULL) {
-        destroyCampoEditar(camposEditar->campoEditar);
-        destroyCamposEditar(camposEditar->next);
-        free(camposEditar);
-    }
-}
-
-void destroyFrecuencia(Frecuencia * frecuencia){
-	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (frecuencia != NULL) {
-		free(frecuencia);
+	if (field != NULL) {
+		switch (field->kind) {
+			case EDIT_FIELD_AMOUNT:
+				break;
+			case EDIT_FIELD_CATEGORY:
+				free(field->categoryId);
+				break;
+			case EDIT_FIELD_DATE_VALUE:
+				destroyDateValue(field->dateValue);
+				break;
+			case EDIT_FIELD_DESCRIPTION:
+				free(field->descriptionText);
+				break;
+		}
+		free(field);
 	}
 }
 
-void destroyPeriodoOFechas(PeriodoOFechas * periodoOFechas){
+void destroyEditFieldList(EditFieldList * list) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (periodoOFechas != NULL) {
-		switch (periodoOFechas->type) {
-            case RANGO_TIPO:
-                destroyFecha(periodoOFechas->desde);
-                destroyFecha(periodoOFechas->hasta);
-                break;
-            case FRECUENCIA_TIPO:
-                destroyFrecuencia(periodoOFechas->frecuencia);
-                break;
-        }
-        free(periodoOFechas);
+	if (list != NULL) {
+		destroyEditField(list->field);
+		destroyEditFieldList(list->next);
+		free(list);
 	}
 }
 
-void destroyOptionalDescripcion(OptionalDescripcion * optionalDescripcion){
+void destroyPredefinedPeriod(PredefinedPeriod * period) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if(optionalDescripcion != NULL) {
-		free(optionalDescripcion->descripcion);
-		free(optionalDescripcion);
+	if (period != NULL) {
+		free(period);
 	}
 }
 
-void destroyOptionalHasta(OptionalHasta * optionalHasta){
+void destroyDateFilter(DateFilter * filter) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (optionalHasta != NULL) {
-		destroyFecha(optionalHasta->fecha);
-		free(optionalHasta);
+	if (filter != NULL) {
+		switch (filter->kind) {
+			case DATE_FILTER_RANGE:
+				destroyDateValue(filter->rangeFrom);
+				destroyDateValue(filter->rangeTo);
+				break;
+			case DATE_FILTER_PREDEFINED_PERIOD:
+				destroyPredefinedPeriod(filter->period);
+				break;
+		}
+		free(filter);
 	}
 }
 
-void destroyOptionalDesde(OptionalDesde * optionalDesde){
+void destroyOptionalDescription(OptionalDescription * optional) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (optionalDesde != NULL) {
-		destroyFecha(optionalDesde->fecha);
-		free(optionalDesde);
+	if (optional != NULL) {
+		free(optional->text);
+		free(optional);
 	}
 }
 
-void destroyOptionalFecha(OptionalFecha * optionalFecha){
+void destroyOptionalEndDate(OptionalEndDate * optional) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (optionalFecha != NULL) {
-		destroyFecha(optionalFecha->fecha);
-		free(optionalFecha);
+	if (optional != NULL) {
+		destroyDateValue(optional->dateValue);
+		free(optional);
 	}
 }
 
-void destroyOptionalCategoria(OptionalCategoria * optionalCategoria){
+void destroyOptionalStartDate(OptionalStartDate * optional) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (optionalCategoria != NULL) {
-		free(optionalCategoria->id);
-		free(optionalCategoria);
+	if (optional != NULL) {
+		destroyDateValue(optional->dateValue);
+		free(optional);
 	}
 }
 
-void destroyOptionalCuotas(OptionalCuotas * optionalCuotas){
+void destroyOptionalOperationDate(OptionalOperationDate * optional) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (optionalCuotas != NULL) {
-		free(optionalCuotas);
+	if (optional != NULL) {
+		destroyDateValue(optional->dateValue);
+		free(optional);
 	}
 }
 
-void destroyFinalizarSentence(FinalizarSentence * finalizarSentence){
+void destroyOptionalCategory(OptionalCategory * optional) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (finalizarSentence != NULL) {
-		free(finalizarSentence);
+	if (optional != NULL) {
+		free(optional->identifier);
+		free(optional);
 	}
 }
 
-void destroyReporteSentence(ReporteSentence * reporteSentence){
+void destroyOptionalInstallments(OptionalInstallments * optional) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (reporteSentence != NULL) {
-		destroyFormato(reporteSentence->formato);
-		destroyPeriodoOFechas(reporteSentence->periodoOFechas);
-		free(reporteSentence);
+	if (optional != NULL) {
+		free(optional);
 	}
 }
 
-void destroyEliminarSentence(EliminarSentence * eliminarSentence){
+void destroyFinalizeStatement(FinalizeStatement * statement) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (eliminarSentence != NULL) {
-		free(eliminarSentence);
+	if (statement != NULL) {
+		free(statement);
 	}
 }
 
-void destroyEditarSentence(EditarSentence * editarSentence){
+void destroyReportStatement(ReportStatement * statement) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (editarSentence != NULL) {
-		destroyCamposEditar(editarSentence->camposEditar);
-		free(editarSentence);
+	if (statement != NULL) {
+		destroyReportFormat(statement->format);
+		destroyDateFilter(statement->dateFilter);
+		free(statement);
 	}
 }
 
-void destroyConsultaSentence(ConsultaSentence * consultaSentence){
+void destroyDeleteStatement(DeleteStatement * statement) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (consultaSentence != NULL) {
-		destroyPeriodoOFechas(consultaSentence->periodoOFechas);
-		free(consultaSentence);
+	if (statement != NULL) {
+		free(statement);
 	}
 }
 
-void destroySuscripcionSentence(SuscripcionSentence * suscripcionSentence){
+void destroyEditStatement(EditStatement * statement) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (suscripcionSentence != NULL) {
-		destroyFrecuencia(suscripcionSentence->frecuencia);
-        destroyOptionalCategoria(suscripcionSentence->optionalCategoria);
-        destroyOptionalDesde(suscripcionSentence->optionalDesde);
-        destroyOptionalHasta(suscripcionSentence->optionalHasta);
-        destroyOptionalDescripcion(suscripcionSentence->optionalDescripcion);
-        free(suscripcionSentence);
-	}
-}
-void destroyIngresoSentence(IngresoSentence * ingresoSentence){
-	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (ingresoSentence != NULL) {
-		destroyOptionalCategoria(ingresoSentence->optionalCategoria);
-        destroyOptionalFecha(ingresoSentence->optionalFecha);
-        destroyOptionalDescripcion(ingresoSentence->optionalDescripcion);
-        free(ingresoSentence);
-	}
-}
-void destroyGastoSentence(GastoSentence * gastoSentence){
-	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (gastoSentence != NULL) {
-		destroyOptionalCuotas(gastoSentence->optionalCuotas);
-        destroyOptionalCategoria(gastoSentence->optionalCategoria);
-        destroyOptionalFecha(gastoSentence->optionalFecha);
-        destroyOptionalDescripcion(gastoSentence->optionalDescripcion);
-        free(gastoSentence);
-	}
-}
-void destroyDivisaSentence(DivisaSentence * divisaSentence){
-	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (divisaSentence != NULL) {
-		free(divisaSentence->id);
-		free(divisaSentence);
+	if (statement != NULL) {
+		destroyEditFieldList(statement->fields);
+		free(statement);
 	}
 }
 
-void destroySentence(Sentence * sentence){
+void destroyQueryStatement(QueryStatement * statement) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (sentence != NULL) {
-        switch (sentence->type) {
-            case DIVISA_SENTENCE:
-                destroyDivisaSentence(sentence->divisaSentence);
-                break;
-            case GASTO_SENTENCE:
-                destroyGastoSentence(sentence->gastoSentence);
-                break;
-            case INGRESO_SENTENCE:
-                destroyIngresoSentence(sentence->ingresoSentence);
-                break;
-            case SUSCRIPCION_SENTENCE:
-                destroySuscripcionSentence(sentence->suscripcionSentence);
-                break;
-            case CONSULTAR_SENTENCE:
-                destroyConsultaSentence(sentence->consultaSentence);
-                break;
-            case EDITAR_SENTENCE:
-                destroyEditarSentence(sentence->editarSentence);
-                break;
-            case ELIMINAR_SENTENCE:
-                destroyEliminarSentence(sentence->eliminarSentence);
-                break;
-            case REPORTE_SENTENCE:
-                destroyReporteSentence(sentence->reporteSentence);
-                break;
-            case FINALIZAR_SENTENCE:
-                destroyFinalizarSentence(sentence->finalizarSentence);
-                break;
-        }
-        free(sentence);
-    }
+	if (statement != NULL) {
+		destroyDateFilter(statement->dateFilter);
+		free(statement);
+	}
 }
 
-void destroySentences(Sentences * sentences){
+void destroySubscriptionStatement(SubscriptionStatement * statement) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (sentences != NULL) {
-        destroySentence(sentences->sentence);
-        destroySentences(sentences->next);
-        free(sentences);
-    }
+	if (statement != NULL) {
+		destroyPredefinedPeriod(statement->period);
+		destroyOptionalCategory(statement->optionalCategory);
+		destroyOptionalStartDate(statement->optionalStartDate);
+		destroyOptionalEndDate(statement->optionalEndDate);
+		destroyOptionalDescription(statement->optionalDescription);
+		free(statement);
+	}
 }
 
-void destroyProgram(Program * program){
+void destroyIncomeStatement(IncomeStatement * statement) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (statement != NULL) {
+		destroyOptionalCategory(statement->optionalCategory);
+		destroyOptionalOperationDate(statement->optionalOperationDate);
+		destroyOptionalDescription(statement->optionalDescription);
+		free(statement);
+	}
+}
+
+void destroyExpenseStatement(ExpenseStatement * statement) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (statement != NULL) {
+		destroyOptionalInstallments(statement->optionalInstallments);
+		destroyOptionalCategory(statement->optionalCategory);
+		destroyOptionalOperationDate(statement->optionalOperationDate);
+		destroyOptionalDescription(statement->optionalDescription);
+		free(statement);
+	}
+}
+
+void destroyCurrencyStatement(CurrencyStatement * statement) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (statement != NULL) {
+		free(statement->identifier);
+		free(statement);
+	}
+}
+
+void destroyStatement(Statement * statement) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (statement != NULL) {
+		switch (statement->kind) {
+			case STATEMENT_CURRENCY:
+				destroyCurrencyStatement(statement->currencyStatement);
+				break;
+			case STATEMENT_EXPENSE:
+				destroyExpenseStatement(statement->expenseStatement);
+				break;
+			case STATEMENT_INCOME:
+				destroyIncomeStatement(statement->incomeStatement);
+				break;
+			case STATEMENT_SUBSCRIPTION:
+				destroySubscriptionStatement(statement->subscriptionStatement);
+				break;
+			case STATEMENT_QUERY:
+				destroyQueryStatement(statement->queryStatement);
+				break;
+			case STATEMENT_EDIT:
+				destroyEditStatement(statement->editStatement);
+				break;
+			case STATEMENT_DELETE:
+				destroyDeleteStatement(statement->deleteStatement);
+				break;
+			case STATEMENT_REPORT:
+				destroyReportStatement(statement->reportStatement);
+				break;
+			case STATEMENT_FINALIZE:
+				destroyFinalizeStatement(statement->finalizeStatement);
+				break;
+		}
+		free(statement);
+	}
+}
+
+void destroyStatementList(StatementList * list) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (list != NULL) {
+		destroyStatement(list->statement);
+		destroyStatementList(list->next);
+		free(list);
+	}
+}
+
+void destroyProgram(Program * program) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
 	if (program != NULL) {
-        destroySentences(program->sentences);
-        free(program);
-    }
+		destroyStatementList(program->statements);
+		free(program);
+	}
 }

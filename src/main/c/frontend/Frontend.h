@@ -69,7 +69,7 @@ CompilationStatus executeLexicalAnalysis(LexicalAnalyzer * lexicalAnalyzer);
 /**
  * Starts parsing the input until it reaches the end or fails.
  */
-CompilationStatus executeSyntacticAnalysis();
+CompilationStatus executeSyntaxAnalysis();
 
 /**
  * Leaves the current nested lexical-analyzer context.

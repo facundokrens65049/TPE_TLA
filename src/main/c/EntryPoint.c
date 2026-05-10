@@ -1,6 +1,8 @@
 #include "backend/code-generation/Generator.h"
 #include "backend/domain-specific/Calculator.h"
 #include "frontend/Frontend.h"
+#include "frontend/syntactic-analysis/AbstractSyntaxTree.h"
+#include "frontend/syntactic-analysis/SemanticAnalyzer.h"
 #include "frontend/lexical-analysis/FlexActions.h"
 #include "frontend/syntactic-analysis/BisonActions.h"
 #include "support/logging/Logger.h"
@@ -20,7 +22,7 @@ const int main(const int length, const char ** arguments) {
 		logDebugging(logger, "Argument %d: \"%s\"", k, arguments[k]);
 	}
 	CompilerState compilerState = {
-		.abstractSyntaxtTree = NULL,
+		.abstractSyntaxTree = NULL,
 		.value = 0
 	};
 	ModuleDestructor moduleDestructors[] = {
@@ -31,8 +33,11 @@ const int main(const int length, const char ** arguments) {
 		initializeCalculatorModule(),
 		initializeGeneratorModule()
 	};
-	CompilationStatus compilationStatus = executeSyntacticAnalysis();
-	Program * program = compilerState.abstractSyntaxtTree;
+	CompilationStatus compilationStatus = executeSyntaxAnalysis();
+	Program * program = compilerState.abstractSyntaxTree;
+	if (compilationStatus == SUCCEEDED) {
+		compilationStatus = validateProgram(program);
+	}
 	if (compilationStatus == SUCCEEDED) {
 		// ----------------------------------------------------------------------------------------
 		// Beginning of the Backend... ------------------------------------------------------------
@@ -50,7 +55,7 @@ const int main(const int length, const char ** arguments) {
 		// ----------------------------------------------------------------------------------------
 	}
 	else {
-		logError(logger, "The syntactic-analysis phase rejects the input program.");
+		logError(logger, "The compilation phase rejects the input program.");
 		compilationStatus = FAILED;
 	}
 	logDebugging(logger, "Releasing AST resources...");

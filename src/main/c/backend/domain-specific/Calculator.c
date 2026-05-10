@@ -140,6 +140,6 @@ ModuleDestructor initializeCalculatorModule() {
 // }
 
 // ComputationResult executeCalculator(CompilerState * compilerState) {
-// 	Program * program = compilerState->abstractSyntaxtTree;
+// 	Program * program = compilerState->abstractSyntaxTree;
 // 	return computeExpression(program->expression);
 // }
