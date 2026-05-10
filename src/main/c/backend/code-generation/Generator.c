@@ -172,7 +172,7 @@ ModuleDestructor initializeGeneratorModule() {
 void executeGenerator(CompilerState * compilerState) {
 	// logDebugging(_logger, "Generating final output...");
 	// _generatePrologue();
-	// _generateProgram(compilerState->abstractSyntaxtTree);
+	// _generateProgram(compilerState->abstractSyntaxTree);
 	// _generateEpilogue(compilerState->value);
 	// logDebugging(_logger, "Generation is done.");
 	logDebugging(_logger, "Backend not implemented yet");

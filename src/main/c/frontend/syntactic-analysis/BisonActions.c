@@ -36,340 +36,340 @@ static void _logSyntacticAnalyzerAction(const char * functionName) {
 
 /* PUBLIC FUNCTIONS */
 
-Formato * FormatoSemanticAction(FormatoTipo formatoTipo){
+ReportFormat * reportFormatSemanticAction(ReportFormatKind kind) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Formato * formato = calloc(1, sizeof(Formato));
-	formato->formatoTipo = formatoTipo;
-	return formato;
+	ReportFormat * format = calloc(1, sizeof(ReportFormat));
+	format->kind = kind;
+	return format;
 }
 
-Fecha * RelativaFechaSemanticAction(FechaTipo tipo){
+Date * relativeDateSemanticAction(DateKind kind) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Fecha * fecha = calloc(1, sizeof(Fecha));
-	fecha->type = tipo;
-	return fecha;
+	Date * date = calloc(1, sizeof(Date));
+	date->kind = kind;
+	return date;
 }
 
-Fecha * StringFechaSemanticAction(const char * string){
+Date * stringDateSemanticAction(const char * string) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Fecha * fecha = calloc(1, sizeof(Fecha));
-	fecha->type = DATE_TIPO;
-	fecha->date = (char*)string;
-	return fecha;
+	Date * date = calloc(1, sizeof(Date));
+	date->kind = DATE_KIND_LITERAL;
+	date->literal = (char *) string;
+	return date;
 }
 
-CampoEditar * DescripcionCampoEditarSemanticAction(const char * string){
+EditField * descriptionEditFieldSemanticAction(const char * string) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	CampoEditar * campoEditar = calloc(1, sizeof(CampoEditar));
-	campoEditar->type = DESCRIPCION_CAMPO;
-	campoEditar->descripcion = (char*)string;
-	return campoEditar;
+	EditField * field = calloc(1, sizeof(EditField));
+	field->kind = EDIT_FIELD_DESCRIPTION;
+	field->description = (char *) string;
+	return field;
 }
 
-CampoEditar * FechaCampoEditarSemanticAction(Fecha * fecha){
+EditField * dateEditFieldSemanticAction(Date * date) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	CampoEditar * campoEditar = calloc(1, sizeof(CampoEditar));
-	campoEditar->type = FECHA_CAMPO;
-	campoEditar->fecha = fecha;
-	return campoEditar;
+	EditField * field = calloc(1, sizeof(EditField));
+	field->kind = EDIT_FIELD_DATE;
+	field->date = date;
+	return field;
 }
 
-CampoEditar * CategoriaCampoEditarSemanticAction(const char * id){
+EditField * categoryEditFieldSemanticAction(const char * id) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	CampoEditar * campoEditar = calloc(1, sizeof(CampoEditar));
-	campoEditar->type = CATEGORIA_CAMPO;
-	campoEditar->id = (char*)id;
-	return campoEditar;
+	EditField * field = calloc(1, sizeof(EditField));
+	field->kind = EDIT_FIELD_CATEGORY;
+	field->categoryId = (char *) id;
+	return field;
 }
 
-CampoEditar * MontoCampoEditarSemanticAction(const int numero){
+EditField * amountEditFieldSemanticAction(const int amount) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	CampoEditar * campoEditar = calloc(1, sizeof(CampoEditar));
-	campoEditar->type = MONTO_CAMPO;
-	campoEditar->numero = numero;
-	return campoEditar;
+	EditField * field = calloc(1, sizeof(EditField));
+	field->kind = EDIT_FIELD_AMOUNT;
+	field->amount = amount;
+	return field;
 }
 
-CamposEditar * CampoEditarSemanticAction(CampoEditar * campoEditar){
+EditFieldList * singleEditFieldSemanticAction(EditField * field) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	CamposEditar * camposEditar = calloc(1, sizeof(CamposEditar));
-	camposEditar->campoEditar = campoEditar;
-	return camposEditar;
+	EditFieldList * list = calloc(1, sizeof(EditFieldList));
+	list->field = field;
+	return list;
 }
 
-CamposEditar * CamposCampoEditarSemanticAction(CamposEditar * camposEditar, CampoEditar * campoEditar){
+EditFieldList * consEditFieldsSemanticAction(EditFieldList * tail, EditField * head) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-    CamposEditar * newCamposEditar = calloc(1, sizeof(CamposEditar));
-    newCamposEditar->campoEditar = campoEditar;
-    newCamposEditar->next = camposEditar;
-    return newCamposEditar;
+	EditFieldList * list = calloc(1, sizeof(EditFieldList));
+	list->field = head;
+	list->next = tail;
+	return list;
 }
 
-Frecuencia * FrecuenciaSemanticAction(FrecuenciaTipo frecuenciaTipo){
+Frequency * frequencySemanticAction(FrequencyKind kind) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Frecuencia * frecuencia = calloc(1, sizeof(Frecuencia));
-	frecuencia->type = frecuenciaTipo;
-	return frecuencia;
+	Frequency * frequency = calloc(1, sizeof(Frequency));
+	frequency->kind = kind;
+	return frequency;
 }
 
-PeriodoOFechas * RangoPeriodoOFechasSemanticAction(Fecha * fechaDesde, Fecha * fechaHasta){
+DatePeriod * dateRangePeriodSemanticAction(Date * fromDate, Date * toDate) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	PeriodoOFechas * periodoOFechas = calloc(1, sizeof(PeriodoOFechas));
-	periodoOFechas->type = RANGO_TIPO;
-	periodoOFechas->desde = fechaDesde;
-	periodoOFechas->hasta = fechaHasta;
-	return periodoOFechas;
+	DatePeriod * period = calloc(1, sizeof(DatePeriod));
+	period->kind = DATE_PERIOD_RANGE;
+	period->fromDate = fromDate;
+	period->toDate = toDate;
+	return period;
 }
 
-PeriodoOFechas * FrecuenciaPeriodoOFechasSemanticAction(Frecuencia * frecuencia){
+DatePeriod * frequencyDatePeriodSemanticAction(Frequency * frequency) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	PeriodoOFechas * periodoOFechas = calloc(1, sizeof(PeriodoOFechas));
-	periodoOFechas->type = FRECUENCIA_TIPO;
-	periodoOFechas->frecuencia = frecuencia;
-	return periodoOFechas;
+	DatePeriod * period = calloc(1, sizeof(DatePeriod));
+	period->kind = DATE_PERIOD_FREQUENCY;
+	period->frequency = frequency;
+	return period;
 }
 
-OptionalDescripcion * EmptyOptionalDescripcionSemanticAction(){
+OptionalDescription * emptyOptionalDescriptionSemanticAction() {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	return NULL;
 }
 
-OptionalDescripcion * PresentOptionalDescripcionSemanticAction(const char * string){
+OptionalDescription * presentOptionalDescriptionSemanticAction(const char * string) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	OptionalDescripcion * optionalDescripcion = calloc(1, sizeof(OptionalDescripcion));
-	optionalDescripcion->descripcion = (char*)string;
-	return optionalDescripcion;
+	OptionalDescription * optional = calloc(1, sizeof(OptionalDescription));
+	optional->text = (char *) string;
+	return optional;
 }
 
-OptionalHasta * EmptyOptionalHastaSemanticAction(){
+OptionalUntil * emptyOptionalUntilSemanticAction() {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	return NULL;
 }
 
-OptionalHasta * PresentOptionalHastaSemanticAction(Fecha * fecha){
+OptionalUntil * presentOptionalUntilSemanticAction(Date * date) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	OptionalHasta * optionalHasta = calloc(1, sizeof(OptionalHasta));
-	optionalHasta->fecha = fecha;
-	return optionalHasta;
+	OptionalUntil * optional = calloc(1, sizeof(OptionalUntil));
+	optional->date = date;
+	return optional;
 }
 
-OptionalDesde * EmptyOptionalDesdeSemanticAction(){
+OptionalFrom * emptyOptionalFromSemanticAction() {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	return NULL;
 }
 
-OptionalDesde * PresentOptionalDesdeSemanticAction(Fecha * fecha){
+OptionalFrom * presentOptionalFromSemanticAction(Date * date) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	OptionalDesde * optionalDesde = calloc(1, sizeof(OptionalDesde));
-	optionalDesde->fecha = fecha;
-	return optionalDesde;
+	OptionalFrom * optional = calloc(1, sizeof(OptionalFrom));
+	optional->date = date;
+	return optional;
 }
 
-OptionalFecha * EmptyOptionalFechaSemanticAction(){
+OptionalDate * emptyOptionalDateSemanticAction() {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	return NULL;
 }
 
-OptionalFecha * PresentOptionalFechaSemanticAction(Fecha * fecha){
+OptionalDate * presentOptionalDateSemanticAction(Date * date) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	OptionalFecha * optionalFecha = calloc(1, sizeof(OptionalFecha));
-	optionalFecha->fecha = fecha;
-	return optionalFecha;
+	OptionalDate * optional = calloc(1, sizeof(OptionalDate));
+	optional->date = date;
+	return optional;
 }
 
-OptionalCategoria * EmptyOptionalCategoriaSemanticAction(){
+OptionalCategory * emptyOptionalCategorySemanticAction() {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	return NULL;
 }
 
-OptionalCategoria * PresentOptionalCategoriaSemanticAction(const char * id){
+OptionalCategory * presentOptionalCategorySemanticAction(const char * id) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	OptionalCategoria * optionalCategoria = calloc(1, sizeof(OptionalCategoria));
-	optionalCategoria->id = (char*)id;
-	return optionalCategoria;
+	OptionalCategory * optional = calloc(1, sizeof(OptionalCategory));
+	optional->id = (char *) id;
+	return optional;
 }
 
-OptionalCuotas * EmptyOptionalCuotasSemanticAction(){
+OptionalInstallments * emptyOptionalInstallmentsSemanticAction() {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	return NULL;
 }
 
-OptionalCuotas * PresentOptionalCuotasSemanticAction(const int numero){
+OptionalInstallments * presentOptionalInstallmentsSemanticAction(const int count) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	OptionalCuotas * optionalCuotas = calloc(1, sizeof(OptionalCuotas));
-	optionalCuotas->numero = numero;
-	return optionalCuotas;
+	OptionalInstallments * optional = calloc(1, sizeof(OptionalInstallments));
+	optional->count = count;
+	return optional;
 }
 
-FinalizarSentence * FinalizarSentenceSemanticAction(const int numero){
+FinalizeSentence * finalizeSentenceSemanticAction(const int number) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	FinalizarSentence * finalizarSentence = calloc(1, sizeof(FinalizarSentence));
-	finalizarSentence->numero = numero;
-	return finalizarSentence;
-}
-
-ReporteSentence * ReporteSentenceSemanticAction(Formato * formato, PeriodoOFechas * periodoOFechas){
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	ReporteSentence * reporteSentence = calloc(1, sizeof(ReporteSentence));
-	reporteSentence->formato = formato;
-	reporteSentence->periodoOFechas = periodoOFechas;
-	return reporteSentence;
-}
-
-EliminarSentence * EliminarSentenceSemanticAction(const int numero){
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	EliminarSentence * eliminarSentence = calloc(1, sizeof(EliminarSentence));
-	eliminarSentence->numero = numero;
-	return eliminarSentence;
-}
-
-EditarSentence * EditarSentenceSemanticAction(const int numero, CamposEditar * camposEditar){
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	EditarSentence * editarSentence = calloc(1, sizeof(EditarSentence));
-	editarSentence->numero = numero;
-	editarSentence->camposEditar = camposEditar;
-	return editarSentence;
-}
-
-ConsultaSentence * ConsultaSentenceSemanticAction(PeriodoOFechas * periodoOFechas){
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	ConsultaSentence * consultaSentence = calloc(1, sizeof(ConsultaSentence));
-	consultaSentence->periodoOFechas = periodoOFechas;
-	return consultaSentence;
-}
-
-SuscripcionSentence * SuscripcionSentenceSemanticAction(const int numero, Frecuencia * frecuencia, OptionalCategoria * optionalCategoria, OptionalDesde * optionalDesde, OptionalHasta * optionalHasta, OptionalDescripcion * optionalDescripcion){
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-    SuscripcionSentence * suscripcionSentence = calloc(1, sizeof(SuscripcionSentence));
-    suscripcionSentence->numero = numero;
-    suscripcionSentence->frecuencia = frecuencia;
-    suscripcionSentence->optionalCategoria = optionalCategoria;
-    suscripcionSentence->optionalDesde = optionalDesde;
-    suscripcionSentence->optionalHasta = optionalHasta;
-    suscripcionSentence->optionalDescripcion = optionalDescripcion;
-    return suscripcionSentence;
-}
-
-IngresoSentence * IngresoSentenceSemanticAction(const int numero, OptionalCategoria * optionalCategoria, OptionalFecha * optionalFecha, OptionalDescripcion * optionalDescripcion){
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-    IngresoSentence * ingresoSentence = calloc(1, sizeof(IngresoSentence));
-    ingresoSentence->numero = numero;
-    ingresoSentence->optionalCategoria = optionalCategoria;
-    ingresoSentence->optionalFecha = optionalFecha;
-    ingresoSentence->optionalDescripcion = optionalDescripcion;
-    return ingresoSentence;
-}
-
-GastoSentence * GastoSentenceSemanticAction(const int numero, OptionalCuotas * optionalCuotas, OptionalCategoria * optionalCategoria, OptionalFecha * optionalFecha, OptionalDescripcion * optionalDescripcion){
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-    GastoSentence * gastoSentence = calloc(1, sizeof(GastoSentence));
-    gastoSentence->numero = numero;
-    gastoSentence->optionalCuotas = optionalCuotas;
-    gastoSentence->optionalCategoria = optionalCategoria;
-    gastoSentence->optionalFecha = optionalFecha;
-    gastoSentence->optionalDescripcion = optionalDescripcion;
-    return gastoSentence;
-}
-
-DivisaSentence * DivisaSentenceSemanticAction(const char * id){
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-    DivisaSentence * divisaSentence = calloc(1, sizeof(DivisaSentence));
-    divisaSentence->id = (char*)id;
-    return divisaSentence;
-}
-
-Sentence * FinalizarSentenceSentenceSemanticAction(FinalizarSentence * finalizarSentence){
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-    Sentence * sentence = calloc(1, sizeof(Sentence));
-    sentence->type = FINALIZAR_SENTENCE;
-    sentence->finalizarSentence = finalizarSentence;
-    return sentence;
-}
-
-Sentence * ReporteSentenceSentenceSemanticAction(ReporteSentence * reporteSentence){
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Sentence * sentence = calloc(1, sizeof(Sentence));
-	sentence->type = REPORTE_SENTENCE;
-	sentence->reporteSentence = reporteSentence;
+	FinalizeSentence * sentence = calloc(1, sizeof(FinalizeSentence));
+	sentence->number = number;
 	return sentence;
 }
 
-Sentence * EliminarSentenceSentenceSemanticAction(EliminarSentence * eliminarSentence){
+ReportSentence * reportSentenceSemanticAction(ReportFormat * format, DatePeriod * period) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Sentence * sentence = calloc(1, sizeof(Sentence));
-	sentence->type = ELIMINAR_SENTENCE;
-	sentence->eliminarSentence = eliminarSentence;
+	ReportSentence * sentence = calloc(1, sizeof(ReportSentence));
+	sentence->format = format;
+	sentence->period = period;
 	return sentence;
 }
 
-Sentence * EditarSentenceSentenceSemanticAction(EditarSentence * editarSentence){
+DeleteSentence * deleteSentenceSemanticAction(const int number) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Sentence * sentence = calloc(1, sizeof(Sentence));
-	sentence->type = EDITAR_SENTENCE;
-	sentence->editarSentence = editarSentence;
+	DeleteSentence * sentence = calloc(1, sizeof(DeleteSentence));
+	sentence->number = number;
 	return sentence;
 }
 
-Sentence * ConsultaSentenceSentenceSemanticAction(ConsultaSentence * consultaSentence){
+EditSentence * editSentenceSemanticAction(const int number, EditFieldList * fields) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Sentence * sentence = calloc(1, sizeof(Sentence));
-	sentence->type = CONSULTAR_SENTENCE;
-	sentence->consultaSentence = consultaSentence;
+	EditSentence * sentence = calloc(1, sizeof(EditSentence));
+	sentence->number = number;
+	sentence->fields = fields;
 	return sentence;
 }
 
-Sentence * SuscripcionSentenceSentenceSemanticAction(SuscripcionSentence * suscripcionSentence){
+QuerySentence * querySentenceSemanticAction(DatePeriod * period) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Sentence * sentence = calloc(1, sizeof(Sentence));
-	sentence->type = SUSCRIPCION_SENTENCE;
-	sentence->suscripcionSentence = suscripcionSentence;
+	QuerySentence * sentence = calloc(1, sizeof(QuerySentence));
+	sentence->period = period;
 	return sentence;
 }
 
-Sentence * IngresoSentenceSentenceSemanticAction(IngresoSentence * ingresoSentence){
+SubscriptionSentence * subscriptionSentenceSemanticAction(const int number, Frequency * frequency, OptionalCategory * optionalCategory, OptionalFrom * optionalFrom, OptionalUntil * optionalUntil, OptionalDescription * optionalDescription) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Sentence * sentence = calloc(1, sizeof(Sentence));
-	sentence->type = INGRESO_SENTENCE;
-	sentence->ingresoSentence = ingresoSentence;
+	SubscriptionSentence * sentence = calloc(1, sizeof(SubscriptionSentence));
+	sentence->number = number;
+	sentence->frequency = frequency;
+	sentence->optionalCategory = optionalCategory;
+	sentence->optionalFrom = optionalFrom;
+	sentence->optionalUntil = optionalUntil;
+	sentence->optionalDescription = optionalDescription;
 	return sentence;
 }
 
-Sentence * GastoSentenceSentenceSemanticAction(GastoSentence * gastoSentence){
+IncomeSentence * incomeSentenceSemanticAction(const int number, OptionalCategory * optionalCategory, OptionalDate * optionalDate, OptionalDescription * optionalDescription) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Sentence * sentence = calloc(1, sizeof(Sentence));
-	sentence->type = GASTO_SENTENCE;
-	sentence->gastoSentence = gastoSentence;
+	IncomeSentence * sentence = calloc(1, sizeof(IncomeSentence));
+	sentence->number = number;
+	sentence->optionalCategory = optionalCategory;
+	sentence->optionalDate = optionalDate;
+	sentence->optionalDescription = optionalDescription;
 	return sentence;
 }
 
-Sentence * DivisaSentenceSentenceSemanticAction(DivisaSentence * divisaSentence){
+ExpenseSentence * expenseSentenceSemanticAction(const int number, OptionalInstallments * optionalInstallments, OptionalCategory * optionalCategory, OptionalDate * optionalDate, OptionalDescription * optionalDescription) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Sentence * sentence = calloc(1, sizeof(Sentence));
-	sentence->type = DIVISA_SENTENCE;
-	sentence->divisaSentence = divisaSentence;
+	ExpenseSentence * sentence = calloc(1, sizeof(ExpenseSentence));
+	sentence->number = number;
+	sentence->optionalInstallments = optionalInstallments;
+	sentence->optionalCategory = optionalCategory;
+	sentence->optionalDate = optionalDate;
+	sentence->optionalDescription = optionalDescription;
 	return sentence;
 }
 
-Sentences * SentenceSemanticAction(Sentence * sentence){
+CurrencySentence * currencySentenceSemanticAction(const char * id) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-    Sentences * sentences = calloc(1, sizeof(Sentences));
-    sentences->sentence = sentence;
-    sentences->next = NULL;
-    return sentences;
+	CurrencySentence * sentence = calloc(1, sizeof(CurrencySentence));
+	sentence->id = (char *) id;
+	return sentence;
 }
 
-Sentences * SentencesSentenceSemanticAction(Sentences * sentences, Sentence * sentence){
+Sentence * sentenceFromFinalizeSemanticAction(FinalizeSentence * finalizeSentence) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-    Sentences * newSentences = calloc(1, sizeof(Sentences));
-    newSentences->sentence = sentence;
-    newSentences->next = sentences;
-    return newSentences;
+	Sentence * sentence = calloc(1, sizeof(Sentence));
+	sentence->kind = SENTENCE_FINALIZE;
+	sentence->finalizeSentence = finalizeSentence;
+	return sentence;
 }
 
-Program * SentencesProgramSemanticAction(Sentences * sentences){
+Sentence * sentenceFromReportSemanticAction(ReportSentence * reportSentence) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-    Program * program = calloc(1, sizeof(Program));
-    program->sentences = sentences;
-    _compilerState->abstractSyntaxtTree = program;
-    return program;
+	Sentence * sentence = calloc(1, sizeof(Sentence));
+	sentence->kind = SENTENCE_REPORT;
+	sentence->reportSentence = reportSentence;
+	return sentence;
+}
+
+Sentence * sentenceFromDeleteSemanticAction(DeleteSentence * deleteSentence) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Sentence * sentence = calloc(1, sizeof(Sentence));
+	sentence->kind = SENTENCE_DELETE;
+	sentence->deleteSentence = deleteSentence;
+	return sentence;
+}
+
+Sentence * sentenceFromEditSemanticAction(EditSentence * editSentence) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Sentence * sentence = calloc(1, sizeof(Sentence));
+	sentence->kind = SENTENCE_EDIT;
+	sentence->editSentence = editSentence;
+	return sentence;
+}
+
+Sentence * sentenceFromQuerySemanticAction(QuerySentence * querySentence) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Sentence * sentence = calloc(1, sizeof(Sentence));
+	sentence->kind = SENTENCE_QUERY;
+	sentence->querySentence = querySentence;
+	return sentence;
+}
+
+Sentence * sentenceFromSubscriptionSemanticAction(SubscriptionSentence * subscriptionSentence) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Sentence * sentence = calloc(1, sizeof(Sentence));
+	sentence->kind = SENTENCE_SUBSCRIPTION;
+	sentence->subscriptionSentence = subscriptionSentence;
+	return sentence;
+}
+
+Sentence * sentenceFromIncomeSemanticAction(IncomeSentence * incomeSentence) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Sentence * sentence = calloc(1, sizeof(Sentence));
+	sentence->kind = SENTENCE_INCOME;
+	sentence->incomeSentence = incomeSentence;
+	return sentence;
+}
+
+Sentence * sentenceFromExpenseSemanticAction(ExpenseSentence * expenseSentence) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Sentence * sentence = calloc(1, sizeof(Sentence));
+	sentence->kind = SENTENCE_EXPENSE;
+	sentence->expenseSentence = expenseSentence;
+	return sentence;
+}
+
+Sentence * sentenceFromCurrencySemanticAction(CurrencySentence * currencySentence) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Sentence * sentence = calloc(1, sizeof(Sentence));
+	sentence->kind = SENTENCE_CURRENCY;
+	sentence->currencySentence = currencySentence;
+	return sentence;
+}
+
+Sentences * sentenceSemanticAction(Sentence * sentence) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Sentences * sentences = calloc(1, sizeof(Sentences));
+	sentences->sentence = sentence;
+	sentences->next = NULL;
+	return sentences;
+}
+
+Sentences * sentencesSentenceSemanticAction(Sentences * sentences, Sentence * sentence) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Sentences * newSentences = calloc(1, sizeof(Sentences));
+	newSentences->sentence = sentence;
+	newSentences->next = sentences;
+	return newSentences;
+}
+
+Program * sentencesProgramSemanticAction(Sentences * sentences) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Program * program = calloc(1, sizeof(Program));
+	program->sentences = sentences;
+	_compilerState->abstractSyntaxTree = program;
+	return program;
 }

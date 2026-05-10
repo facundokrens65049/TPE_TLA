@@ -61,7 +61,7 @@ CompilationStatus KeywordLexemeAction(TokenLabel label) {
 	return status;
 }
 
-CompilationStatus NumeroLexemeAction() {
+CompilationStatus NumberLexemeAction() {
 	Token * token = createToken(_lexicalAnalyzer, NUMERO);
 	token->semanticValue->integer = atoi(token->lexeme);
 	_logTokenAction(__FUNCTION__, token);
@@ -70,7 +70,7 @@ CompilationStatus NumeroLexemeAction() {
 	return status;
 }
 
-CompilationStatus DescripcionLexemeAction(FlexContext stringContext) {
+CompilationStatus DescriptionLexemeAction(FlexContext stringContext) {
 	Token * token = createToken(_lexicalAnalyzer, DESCRIPCION);
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);

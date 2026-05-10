@@ -16,68 +16,60 @@ ModuleDestructor initializeBisonActionsModule(CompilerState * compilerState);
  * Bison semantic actions.
  */
 
-// Constant * IntegerConstantSemanticAction(const int value);
-// Expression * ArithmeticExpressionSemanticAction(Expression * leftExpression, Expression * rightExpression, ExpressionType type);
-// Expression * FactorExpressionSemanticAction(Factor * factor);
-// Factor * ConstantFactorSemanticAction(Constant * constant);
-// Factor * ExpressionFactorSemanticAction(Expression * expression);
-// Program * ExpressionProgramSemanticAction(Expression * expression);
+ReportFormat * reportFormatSemanticAction(ReportFormatKind kind);
 
-Formato * FormatoSemanticAction(FormatoTipo formatoTipo);
+Date * relativeDateSemanticAction(DateKind kind);
+Date * stringDateSemanticAction(const char * string);
 
-Fecha * RelativaFechaSemanticAction(FechaTipo tipo);
-Fecha * StringFechaSemanticAction(const char * string);
+EditField * descriptionEditFieldSemanticAction(const char * string);
+EditField * dateEditFieldSemanticAction(Date * date);
+EditField * categoryEditFieldSemanticAction(const char * id);
+EditField * amountEditFieldSemanticAction(const int amount);
 
-CampoEditar * DescripcionCampoEditarSemanticAction(const char * string);
-CampoEditar * FechaCampoEditarSemanticAction(Fecha * fecha);
-CampoEditar * CategoriaCampoEditarSemanticAction(const char * id);
-CampoEditar * MontoCampoEditarSemanticAction(const int numero);
+EditFieldList * singleEditFieldSemanticAction(EditField * field);
+EditFieldList * consEditFieldsSemanticAction(EditFieldList * tail, EditField * head);
 
-CamposEditar * CampoEditarSemanticAction(CampoEditar * campoEditar);
-CamposEditar * CamposCampoEditarSemanticAction(CamposEditar * camposEditar, CampoEditar * campoEditar);
+Frequency * frequencySemanticAction(FrequencyKind kind);
 
-Frecuencia * FrecuenciaSemanticAction(FrecuenciaTipo frecuenciaTipo);
+DatePeriod * dateRangePeriodSemanticAction(Date * fromDate, Date * toDate);
+DatePeriod * frequencyDatePeriodSemanticAction(Frequency * frequency);
 
-PeriodoOFechas * RangoPeriodoOFechasSemanticAction(Fecha * fechaDesde, Fecha * fechaHasta);
-PeriodoOFechas * FrecuenciaPeriodoOFechasSemanticAction(Frecuencia * frecuencia);
+OptionalDescription * emptyOptionalDescriptionSemanticAction();
+OptionalDescription * presentOptionalDescriptionSemanticAction(const char * string);
+OptionalUntil * emptyOptionalUntilSemanticAction();
+OptionalUntil * presentOptionalUntilSemanticAction(Date * date);
+OptionalFrom * emptyOptionalFromSemanticAction();
+OptionalFrom * presentOptionalFromSemanticAction(Date * date);
+OptionalDate * emptyOptionalDateSemanticAction();
+OptionalDate * presentOptionalDateSemanticAction(Date * date);
+OptionalCategory * emptyOptionalCategorySemanticAction();
+OptionalCategory * presentOptionalCategorySemanticAction(const char * id);
+OptionalInstallments * emptyOptionalInstallmentsSemanticAction();
+OptionalInstallments * presentOptionalInstallmentsSemanticAction(const int count);
 
-OptionalDescripcion * EmptyOptionalDescripcionSemanticAction();
-OptionalDescripcion * PresentOptionalDescripcionSemanticAction(const char * string);
-OptionalHasta * EmptyOptionalHastaSemanticAction();
-OptionalHasta * PresentOptionalHastaSemanticAction(Fecha * fecha);
-OptionalDesde * EmptyOptionalDesdeSemanticAction();
-OptionalDesde * PresentOptionalDesdeSemanticAction(Fecha * fecha);
-OptionalFecha * EmptyOptionalFechaSemanticAction();
-OptionalFecha * PresentOptionalFechaSemanticAction(Fecha * fecha);
-OptionalCategoria * EmptyOptionalCategoriaSemanticAction();
-OptionalCategoria * PresentOptionalCategoriaSemanticAction(const char * id);
-OptionalCuotas * EmptyOptionalCuotasSemanticAction();
-OptionalCuotas * PresentOptionalCuotasSemanticAction(const int numero);
+FinalizeSentence * finalizeSentenceSemanticAction(const int number);
+ReportSentence * reportSentenceSemanticAction(ReportFormat * format, DatePeriod * period);
+DeleteSentence * deleteSentenceSemanticAction(const int number);
+EditSentence * editSentenceSemanticAction(const int number, EditFieldList * fields);
+QuerySentence * querySentenceSemanticAction(DatePeriod * period);
+SubscriptionSentence * subscriptionSentenceSemanticAction(const int number, Frequency * frequency, OptionalCategory * optionalCategory, OptionalFrom * optionalFrom, OptionalUntil * optionalUntil, OptionalDescription * optionalDescription);
+IncomeSentence * incomeSentenceSemanticAction(const int number, OptionalCategory * optionalCategory, OptionalDate * optionalDate, OptionalDescription * optionalDescription);
+ExpenseSentence * expenseSentenceSemanticAction(const int number, OptionalInstallments * optionalInstallments, OptionalCategory * optionalCategory, OptionalDate * optionalDate, OptionalDescription * optionalDescription);
+CurrencySentence * currencySentenceSemanticAction(const char * id);
 
-FinalizarSentence * FinalizarSentenceSemanticAction(const int numero);
-ReporteSentence * ReporteSentenceSemanticAction(Formato * formato, PeriodoOFechas * periodoOFechas);
-EliminarSentence * EliminarSentenceSemanticAction(const int numero);
-EditarSentence * EditarSentenceSemanticAction(const int numero, CamposEditar * camposEditar);
-ConsultaSentence * ConsultaSentenceSemanticAction(PeriodoOFechas * periodoOFechas);
-SuscripcionSentence * SuscripcionSentenceSemanticAction(const int numero, Frecuencia * frecuencia, OptionalCategoria * optionalCategoria, OptionalDesde * optionalDesde, OptionalHasta * optionalHasta, OptionalDescripcion * optionalDescripcion);
-IngresoSentence * IngresoSentenceSemanticAction(const int numero, OptionalCategoria * optionalCategoria, OptionalFecha * optionalFecha, OptionalDescripcion * optionalDescripcion);
-GastoSentence * GastoSentenceSemanticAction(const int numero, OptionalCuotas * optionalCuotas, OptionalCategoria * optionalCategoria, OptionalFecha * optionalFecha, OptionalDescripcion * optionalDescripcion);
-DivisaSentence * DivisaSentenceSemanticAction(const char * id);
+Sentence * sentenceFromFinalizeSemanticAction(FinalizeSentence * finalizeSentence);
+Sentence * sentenceFromReportSemanticAction(ReportSentence * reportSentence);
+Sentence * sentenceFromDeleteSemanticAction(DeleteSentence * deleteSentence);
+Sentence * sentenceFromEditSemanticAction(EditSentence * editSentence);
+Sentence * sentenceFromQuerySemanticAction(QuerySentence * querySentence);
+Sentence * sentenceFromSubscriptionSemanticAction(SubscriptionSentence * subscriptionSentence);
+Sentence * sentenceFromIncomeSemanticAction(IncomeSentence * incomeSentence);
+Sentence * sentenceFromExpenseSemanticAction(ExpenseSentence * expenseSentence);
+Sentence * sentenceFromCurrencySemanticAction(CurrencySentence * currencySentence);
 
-Sentence * FinalizarSentenceSentenceSemanticAction(FinalizarSentence * finalizarSentence);
-Sentence * ReporteSentenceSentenceSemanticAction(ReporteSentence * reporteSentence);
-Sentence * EliminarSentenceSentenceSemanticAction(EliminarSentence * eliminarSentence);
-Sentence * EditarSentenceSentenceSemanticAction(EditarSentence * editarSentence);
-Sentence * ConsultaSentenceSentenceSemanticAction(ConsultaSentence * consultaSentence);
-Sentence * SuscripcionSentenceSentenceSemanticAction(SuscripcionSentence * suscripcionSentence);
-Sentence * IngresoSentenceSentenceSemanticAction(IngresoSentence * ingresoSentence);
-Sentence * GastoSentenceSentenceSemanticAction(GastoSentence * gastoSentence);
-Sentence * DivisaSentenceSentenceSemanticAction(DivisaSentence * divisaSentence);
+Sentences * sentenceSemanticAction(Sentence * sentence);
+Sentences * sentencesSentenceSemanticAction(Sentences * sentences, Sentence * sentence);
 
-Sentences * SentenceSemanticAction(Sentence * sentence);
-Sentences * SentencesSentenceSemanticAction(Sentences * sentences, Sentence * sentence);
-
-Program * SentencesProgramSemanticAction(Sentences * sentences);
-
+Program * sentencesProgramSemanticAction(Sentences * sentences);
 
 #endif

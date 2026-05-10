@@ -9,7 +9,7 @@ typedef struct {
 	/**
 	 * The root node of the AST.
 	 */
-	void * abstractSyntaxtTree;
+	void * abstractSyntaxTree;
 
 	/**
 	 * The computed value of the entire program (only for the calculator). You

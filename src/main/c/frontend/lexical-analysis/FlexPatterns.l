@@ -15,7 +15,7 @@
  */
 
 extern CompilationStatus DateLexemeAction();
-extern CompilationStatus DescripcionLexemeAction(FlexContext context);
+extern CompilationStatus DescriptionLexemeAction(FlexContext context);
 extern CompilationStatus EOFLexemeAction();
 extern CompilationStatus EnterMultilineCommentLexemeAction(FlexContext context);
 extern CompilationStatus IdentifierLexemeAction();
@@ -23,7 +23,7 @@ extern CompilationStatus IgnoredLexemeAction();
 extern CompilationStatus KeywordLexemeAction(TokenLabel label);
 extern CompilationStatus LeaveMultilineCommentLexemeAction();
 extern CompilationStatus LeaveStringContextLexemeAction();
-extern CompilationStatus NumeroLexemeAction();
+extern CompilationStatus NumberLexemeAction();
 extern CompilationStatus StringLexemeAction();
 extern CompilationStatus UnknownLexemeAction();
 
@@ -73,7 +73,7 @@ letter			[a-zA-Z]
 <STRING_LINE_CONTEXT>[^\n]+			{ return StringLexemeAction(); }
 <STRING_LINE_CONTEXT>"\n"			{ return LeaveStringContextLexemeAction(); }
 
-"descripci"(\xc3\xb3|\xc3\x93|"o")"n"				{ return DescripcionLexemeAction(STRING_LINE_CONTEXT); }
+"descripci"(\xc3\xb3|\xc3\x93|"o")"n"				{ return DescriptionLexemeAction(STRING_LINE_CONTEXT); }
 "suscripci"(\xc3\xb3|\xc3\x93|"o")"n"				{ return KeywordLexemeAction(SUSCRIPCION); }
 "categor"(\xc3\xad|\xc3\x8d|"i")"a"				{ return KeywordLexemeAction(CATEGORIA); }
 ("ma"(\xc3\xb1|\xc3\x91)"ana")|"maniana"				{ return KeywordLexemeAction(MANIANA); }
@@ -96,12 +96,12 @@ letter			[a-zA-Z]
 "desde"								{ return KeywordLexemeAction(DESDE); }
 "hasta"								{ return KeywordLexemeAction(HASTA); }
 "html"								{ return KeywordLexemeAction(HTML); }
-"texto_plano"						{ return KeywordLexemeAction(TEXTO_PLANO); }
+"texto"({whitespace}|"_")"plano"	{ return KeywordLexemeAction(TEXTO_PLANO); }
 "pdf"								{ return KeywordLexemeAction(PDF); }
 
 {digit}{2}"-"{digit}{2}"-"{digit}{4}			{ return DateLexemeAction(); }
 
-{digit}+							{ return NumeroLexemeAction(); }
+{digit}+							{ return NumberLexemeAction(); }
 
 ({letter}|\xc3[\x80-\xbf])({letter}|{digit}|"_"|\xc3[\x80-\xbf])*		{ return IdentifierLexemeAction(); }
 

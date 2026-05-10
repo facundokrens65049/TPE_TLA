@@ -20,7 +20,7 @@ const int main(const int length, const char ** arguments) {
 		logDebugging(logger, "Argument %d: \"%s\"", k, arguments[k]);
 	}
 	CompilerState compilerState = {
-		.abstractSyntaxtTree = NULL,
+		.abstractSyntaxTree = NULL,
 		.value = 0
 	};
 	ModuleDestructor moduleDestructors[] = {
@@ -32,7 +32,7 @@ const int main(const int length, const char ** arguments) {
 		initializeGeneratorModule()
 	};
 	CompilationStatus compilationStatus = executeSyntacticAnalysis();
-	Program * program = compilerState.abstractSyntaxtTree;
+	Program * program = compilerState.abstractSyntaxTree;
 	if (compilationStatus == SUCCEEDED) {
 		// ----------------------------------------------------------------------------------------
 		// Beginning of the Backend... ------------------------------------------------------------

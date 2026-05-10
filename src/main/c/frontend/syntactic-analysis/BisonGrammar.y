@@ -35,27 +35,27 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 	Program * program;
 	Sentences * sentences;
 	Sentence * sentence;
-	DivisaSentence * divisaSentence;
-	GastoSentence * gastoSentence;
-	IngresoSentence * ingresoSentence;
-	SuscripcionSentence * suscripcionSentence;
-	ConsultaSentence * consultaSentence;
-	EditarSentence * editarSentence;
-	EliminarSentence * eliminarSentence;
-	ReporteSentence * reporteSentence;
-	FinalizarSentence * finalizarSentence;
-	OptionalCuotas * optionalCuotas;
-	OptionalCategoria * optionalCategoria;
-	OptionalFecha * optionalFecha;
-	OptionalDesde * optionalDesde;
-	OptionalHasta * optionalHasta;
-	OptionalDescripcion * optionalDescripcion;
-	PeriodoOFechas * periodoOFechas;
-	Frecuencia * frecuencia;
-	CamposEditar * camposEditar;
-	CampoEditar * campoEditar;
-	Fecha * fecha;
-	Formato * formato;
+	CurrencySentence * currencySentence;
+	ExpenseSentence * expenseSentence;
+	IncomeSentence * incomeSentence;
+	SubscriptionSentence * subscriptionSentence;
+	QuerySentence * querySentence;
+	EditSentence * editSentence;
+	DeleteSentence * deleteSentence;
+	ReportSentence * reportSentence;
+	FinalizeSentence * finalizeSentence;
+	OptionalInstallments * optionalInstallments;
+	OptionalCategory * optionalCategory;
+	OptionalDate * optionalDate;
+	OptionalFrom * optionalFrom;
+	OptionalUntil * optionalUntil;
+	OptionalDescription * optionalDescription;
+	DatePeriod * datePeriod;
+	Frequency * frequency;
+	EditFieldList * editFields;
+	EditField * editField;
+	Date * astDate;
+	ReportFormat * reportFormat;
 }
 
 /**
@@ -70,27 +70,27 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %destructor { free($$); } <string>
 %destructor { destroySentences($$); } <sentences>
 %destructor { destroySentence($$); } <sentence>
-%destructor { destroyDivisaSentence($$); } <divisaSentence>
-%destructor { destroyGastoSentence($$); } <gastoSentence>
-%destructor { destroyIngresoSentence($$); } <ingresoSentence>
-%destructor { destroySuscripcionSentence($$); } <suscripcionSentence>
-%destructor { destroyConsultaSentence($$); } <consultaSentence>
-%destructor { destroyEditarSentence($$); } <editarSentence>
-%destructor { destroyEliminarSentence($$); } <eliminarSentence>
-%destructor { destroyReporteSentence($$); } <reporteSentence>
-%destructor { destroyFinalizarSentence($$); } <finalizarSentence>
-%destructor { destroyOptionalCuotas($$); } <optionalCuotas>
-%destructor { destroyOptionalCategoria($$); } <optionalCategoria>
-%destructor { destroyOptionalFecha($$); } <optionalFecha>
-%destructor { destroyOptionalDesde($$); } <optionalDesde>
-%destructor { destroyOptionalHasta($$); } <optionalHasta>
-%destructor { destroyOptionalDescripcion($$); } <optionalDescripcion>
-%destructor { destroyPeriodoOFechas($$); } <periodoOFechas>
-%destructor { destroyFrecuencia($$); } <frecuencia>
-%destructor { destroyCamposEditar($$); } <camposEditar>
-%destructor { destroyCampoEditar($$); } <campoEditar>
-%destructor { destroyFecha($$); } <fecha>
-%destructor { destroyFormato($$); } <formato>
+%destructor { destroyCurrencySentence($$); } <currencySentence>
+%destructor { destroyExpenseSentence($$); } <expenseSentence>
+%destructor { destroyIncomeSentence($$); } <incomeSentence>
+%destructor { destroySubscriptionSentence($$); } <subscriptionSentence>
+%destructor { destroyQuerySentence($$); } <querySentence>
+%destructor { destroyEditSentence($$); } <editSentence>
+%destructor { destroyDeleteSentence($$); } <deleteSentence>
+%destructor { destroyReportSentence($$); } <reportSentence>
+%destructor { destroyFinalizeSentence($$); } <finalizeSentence>
+%destructor { destroyOptionalInstallments($$); } <optionalInstallments>
+%destructor { destroyOptionalCategory($$); } <optionalCategory>
+%destructor { destroyOptionalDate($$); } <optionalDate>
+%destructor { destroyOptionalFrom($$); } <optionalFrom>
+%destructor { destroyOptionalUntil($$); } <optionalUntil>
+%destructor { destroyOptionalDescription($$); } <optionalDescription>
+%destructor { destroyDatePeriod($$); } <datePeriod>
+%destructor { destroyFrequency($$); } <frequency>
+%destructor { destroyEditFieldList($$); } <editFields>
+%destructor { destroyEditField($$); } <editField>
+%destructor { destroyDate($$); } <astDate>
+%destructor { destroyReportFormat($$); } <reportFormat>
 
 /* Internal tokens used by FlexActions for logging (never pushed to the parser) */
 %token <token> IGNORED
@@ -133,27 +133,27 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %type <program> program
 %type <sentences> sentences
 %type <sentence> sentence
-%type <divisaSentence> divisaSentence
-%type <gastoSentence> gastoSentence
-%type <ingresoSentence> ingresoSentence
-%type <suscripcionSentence> suscripcionSentence
-%type <consultaSentence> consultaSentence
-%type <editarSentence> editarSentence
-%type <eliminarSentence> eliminarSentence
-%type <reporteSentence> reporteSentence
-%type <finalizarSentence> finalizarSentence
-%type <optionalCuotas> optionalCuotas
-%type <optionalCategoria> optionalCategoria
-%type <optionalFecha> optionalFecha
-%type <optionalDesde> optionalDesde
-%type <optionalHasta> optionalHasta
-%type <optionalDescripcion> optionalDescripcion
-%type <periodoOFechas> periodoOFechas
-%type <frecuencia> frecuencia
-%type <camposEditar> camposEditar
-%type <campoEditar> campoEditar
-%type <fecha> fecha
-%type <formato> formato
+%type <currencySentence> currencySentence
+%type <expenseSentence> expenseSentence
+%type <incomeSentence> incomeSentence
+%type <subscriptionSentence> subscriptionSentence
+%type <querySentence> querySentence
+%type <editSentence> editSentence
+%type <deleteSentence> deleteSentence
+%type <reportSentence> reportSentence
+%type <finalizeSentence> finalizeSentence
+%type <optionalInstallments> optionalInstallments
+%type <optionalCategory> optionalCategory
+%type <optionalDate> optionalDate
+%type <optionalFrom> optionalFrom
+%type <optionalUntil> optionalUntil
+%type <optionalDescription> optionalDescription
+%type <datePeriod> datePeriod
+%type <frequency> frequency
+%type <editFields> editFields
+%type <editField> editField
+%type <astDate> date
+%type <reportFormat> reportFormat
 
 /**
  * Precedence and associativity.
@@ -164,106 +164,106 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
 %%
 
-program: sentences 						{ $$ = SentencesProgramSemanticAction($1); }
+program: sentences 						{ $$ = sentencesProgramSemanticAction($1); }
 	;
 
-sentences: sentences sentence			{ $$ = SentencesSentenceSemanticAction($1, $2); }
-	| sentence							{ $$ = SentenceSemanticAction($1); }
+sentences: sentences sentence			{ $$ = sentencesSentenceSemanticAction($1, $2); }
+	| sentence							{ $$ = sentenceSemanticAction($1); }
 	;
 
-sentence: divisaSentence 				{ $$ = DivisaSentenceSentenceSemanticAction($1); }
-	| gastoSentence 					{ $$ = GastoSentenceSentenceSemanticAction($1); }
-	| ingresoSentence 					{ $$ = IngresoSentenceSentenceSemanticAction($1); }
-	| suscripcionSentence 				{ $$ = SuscripcionSentenceSentenceSemanticAction($1); }
-	| consultaSentence 					{ $$ = ConsultaSentenceSentenceSemanticAction($1); }
-	| editarSentence 					{ $$ = EditarSentenceSentenceSemanticAction($1); }
-	| eliminarSentence 					{ $$ = EliminarSentenceSentenceSemanticAction($1); }
-	| reporteSentence 					{ $$ = ReporteSentenceSentenceSemanticAction($1); }
-	| finalizarSentence 				{ $$ = FinalizarSentenceSentenceSemanticAction($1); }
+sentence: currencySentence 				{ $$ = sentenceFromCurrencySemanticAction($1); }
+	| expenseSentence 					{ $$ = sentenceFromExpenseSemanticAction($1); }
+	| incomeSentence 					{ $$ = sentenceFromIncomeSemanticAction($1); }
+	| subscriptionSentence 				{ $$ = sentenceFromSubscriptionSemanticAction($1); }
+	| querySentence 					{ $$ = sentenceFromQuerySemanticAction($1); }
+	| editSentence 						{ $$ = sentenceFromEditSemanticAction($1); }
+	| deleteSentence 					{ $$ = sentenceFromDeleteSemanticAction($1); }
+	| reportSentence 					{ $$ = sentenceFromReportSemanticAction($1); }
+	| finalizeSentence 					{ $$ = sentenceFromFinalizeSemanticAction($1); }
 	;
 
-divisaSentence: DIVISA ID 				{$$ = DivisaSentenceSemanticAction($2); }
+currencySentence: DIVISA ID 			{$$ = currencySentenceSemanticAction($2); }
 	;
 
-gastoSentence: GASTO NUMERO optionalCuotas optionalCategoria optionalFecha optionalDescripcion {$$ = GastoSentenceSemanticAction($2, $3, $4, $5, $6); }
+expenseSentence: GASTO NUMERO optionalInstallments optionalCategory optionalDate optionalDescription {$$ = expenseSentenceSemanticAction($2, $3, $4, $5, $6); }
 	;
 
 
-ingresoSentence: INGRESO NUMERO optionalCategoria optionalFecha optionalDescripcion {$$ = IngresoSentenceSemanticAction($2, $3, $4, $5); }
+incomeSentence: INGRESO NUMERO optionalCategory optionalDate optionalDescription {$$ = incomeSentenceSemanticAction($2, $3, $4, $5); }
 	;
 
 	
-suscripcionSentence: SUSCRIPCION NUMERO frecuencia optionalCategoria optionalDesde optionalHasta optionalDescripcion { $$ = SuscripcionSentenceSemanticAction($2, $3, $4, $5, $6, $7); }
+subscriptionSentence: SUSCRIPCION NUMERO frequency optionalCategory optionalFrom optionalUntil optionalDescription { $$ = subscriptionSentenceSemanticAction($2, $3, $4, $5, $6, $7); }
 	;
 
-consultaSentence: CONSULTAR periodoOFechas { $$ = ConsultaSentenceSemanticAction($2); }
+querySentence: CONSULTAR datePeriod { $$ = querySentenceSemanticAction($2); }
 	;
 
 
-editarSentence: EDITAR NUMERO camposEditar { $$ = EditarSentenceSemanticAction($2, $3); }
+editSentence: EDITAR NUMERO editFields { $$ = editSentenceSemanticAction($2, $3); }
 	;
 
-eliminarSentence: ELIMINAR NUMERO { $$ = EliminarSentenceSemanticAction($2); }
+deleteSentence: ELIMINAR NUMERO { $$ = deleteSentenceSemanticAction($2); }
 	;
 
-reporteSentence: REPORTE formato periodoOFechas { $$ = ReporteSentenceSemanticAction($2, $3); }
+reportSentence: REPORTE reportFormat datePeriod { $$ = reportSentenceSemanticAction($2, $3); }
 	;
 
-finalizarSentence: FINALIZAR NUMERO { $$ = FinalizarSentenceSemanticAction($2); }
+finalizeSentence: FINALIZAR NUMERO { $$ = finalizeSentenceSemanticAction($2); }
 	;
 
-optionalCuotas: CUOTAS NUMERO { $$ = PresentOptionalCuotasSemanticAction($2); }
-	| %empty { $$ = EmptyOptionalCuotasSemanticAction(); }
+optionalInstallments: CUOTAS NUMERO { $$ = presentOptionalInstallmentsSemanticAction($2); }
+	| %empty { $$ = emptyOptionalInstallmentsSemanticAction(); }
 	;
 
-optionalCategoria: CATEGORIA ID { $$ = PresentOptionalCategoriaSemanticAction($2); }
-	| %empty { $$ = EmptyOptionalCategoriaSemanticAction(); }
+optionalCategory: CATEGORIA ID { $$ = presentOptionalCategorySemanticAction($2); }
+	| %empty { $$ = emptyOptionalCategorySemanticAction(); }
 	;
 
-optionalFecha: FECHA fecha { $$ = PresentOptionalFechaSemanticAction($2); }
-	| %empty { $$ = EmptyOptionalFechaSemanticAction(); }
+optionalDate: FECHA date { $$ = presentOptionalDateSemanticAction($2); }
+	| %empty { $$ = emptyOptionalDateSemanticAction(); }
 	;
 
-optionalDesde: DESDE fecha { $$ = PresentOptionalDesdeSemanticAction($2); }
-	| %empty { $$ = EmptyOptionalDesdeSemanticAction(); }
+optionalFrom: DESDE date { $$ = presentOptionalFromSemanticAction($2); }
+	| %empty { $$ = emptyOptionalFromSemanticAction(); }
 	;
 
-optionalHasta: HASTA fecha { $$ = PresentOptionalHastaSemanticAction($2); }
-	| %empty { $$ = EmptyOptionalHastaSemanticAction(); }
+optionalUntil: HASTA date { $$ = presentOptionalUntilSemanticAction($2); }
+	| %empty { $$ = emptyOptionalUntilSemanticAction(); }
 	;
 
-optionalDescripcion: DESCRIPCION STRING { $$ = PresentOptionalDescripcionSemanticAction($2); }
-	| %empty { $$ = EmptyOptionalDescripcionSemanticAction(); }
+optionalDescription: DESCRIPCION STRING { $$ = presentOptionalDescriptionSemanticAction($2); }
+	| %empty { $$ = emptyOptionalDescriptionSemanticAction(); }
 	;
 
-periodoOFechas: DESDE fecha HASTA fecha { $$ = RangoPeriodoOFechasSemanticAction($2, $4); }
-	| frecuencia { $$ = FrecuenciaPeriodoOFechasSemanticAction($1); }
+datePeriod: DESDE date HASTA date { $$ = dateRangePeriodSemanticAction($2, $4); }
+	| frequency { $$ = frequencyDatePeriodSemanticAction($1); }
 	;
 
-frecuencia: MENSUAL { $$ = FrecuenciaSemanticAction(MENSUAL_TIPO); }
-	| SEMANAL { $$ = FrecuenciaSemanticAction(SEMANAL_TIPO); }
-	| ANUAL { $$ = FrecuenciaSemanticAction(ANUAL_TIPO); }
+frequency: MENSUAL { $$ = frequencySemanticAction(FREQUENCY_MONTHLY); }
+	| SEMANAL { $$ = frequencySemanticAction(FREQUENCY_WEEKLY); }
+	| ANUAL { $$ = frequencySemanticAction(FREQUENCY_YEARLY); }
 	;
 
-camposEditar: camposEditar campoEditar { $$ = CamposCampoEditarSemanticAction($1, $2); }
-	| campoEditar { $$ = CampoEditarSemanticAction($1); }
+editFields: editFields editField { $$ = consEditFieldsSemanticAction($1, $2); }
+	| editField { $$ = singleEditFieldSemanticAction($1); }
 	;
 
-campoEditar: MONTO NUMERO { $$ = MontoCampoEditarSemanticAction($2); }
-	| CATEGORIA ID { $$ = CategoriaCampoEditarSemanticAction($2); }
-	| FECHA fecha { $$ = FechaCampoEditarSemanticAction($2); }
-	| DESCRIPCION STRING { $$ = DescripcionCampoEditarSemanticAction($2); }
+editField: MONTO NUMERO { $$ = amountEditFieldSemanticAction($2); }
+	| CATEGORIA ID { $$ = categoryEditFieldSemanticAction($2); }
+	| FECHA date { $$ = dateEditFieldSemanticAction($2); }
+	| DESCRIPCION STRING { $$ = descriptionEditFieldSemanticAction($2); }
 	;
 
-fecha: DATE { $$ = StringFechaSemanticAction($1); }
-	| HOY { $$ = RelativaFechaSemanticAction(HOY_TIPO); }
-	| AYER { $$ = RelativaFechaSemanticAction(AYER_TIPO); }
-	| MANIANA { $$ = RelativaFechaSemanticAction(MANIANA_TIPO); }
+date: DATE { $$ = stringDateSemanticAction($1); }
+	| HOY { $$ = relativeDateSemanticAction(DATE_KIND_TODAY); }
+	| AYER { $$ = relativeDateSemanticAction(DATE_KIND_YESTERDAY); }
+	| MANIANA { $$ = relativeDateSemanticAction(DATE_KIND_TOMORROW); }
 	;
 
-formato: HTML { $$ = FormatoSemanticAction(HTML_TIPO); }
-	| TEXTO_PLANO { $$ = FormatoSemanticAction(TEXTO_PLANO_TIPO); }
-	| PDF { $$ = FormatoSemanticAction(PDF_TIPO); }
+reportFormat: HTML { $$ = reportFormatSemanticAction(REPORT_FORMAT_HTML); }
+	| TEXTO_PLANO { $$ = reportFormatSemanticAction(REPORT_FORMAT_PLAIN_TEXT); }
+	| PDF { $$ = reportFormatSemanticAction(REPORT_FORMAT_PDF); }
 	;
 
 %%

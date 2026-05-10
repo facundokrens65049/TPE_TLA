@@ -16,7 +16,7 @@
 ModuleDestructor initializeFlexActionsModule(LexicalAnalyzer * lexicalAnalyzer);
 
 CompilationStatus DateLexemeAction();
-CompilationStatus DescripcionLexemeAction(FlexContext stringContext);
+CompilationStatus DescriptionLexemeAction(FlexContext stringContext);
 CompilationStatus EOFLexemeAction();
 CompilationStatus EnterMultilineCommentLexemeAction(FlexContext context);
 CompilationStatus IdentifierLexemeAction();
@@ -24,7 +24,7 @@ CompilationStatus IgnoredLexemeAction();
 CompilationStatus KeywordLexemeAction(TokenLabel label);
 CompilationStatus LeaveMultilineCommentLexemeAction();
 CompilationStatus LeaveStringContextLexemeAction();
-CompilationStatus NumeroLexemeAction();
+CompilationStatus NumberLexemeAction();
 CompilationStatus StringLexemeAction();
 CompilationStatus UnknownLexemeAction();
 
