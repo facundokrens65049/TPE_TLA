@@ -70,6 +70,12 @@ letter			[a-zA-Z]
 <MULTILINE_COMMENT>[^*]+			{ return IgnoredLexemeAction(); }
 <MULTILINE_COMMENT>.				{ return IgnoredLexemeAction(); }
 
+%{
+// La descripcion no usa comillas: "descripcion" mete al scanner en
+// STRING_LINE_CONTEXT y ahi todo el resto de la linea (hasta el \n) es un solo
+// STRING. Ojo: un token escrito despues de la descripcion en la misma linea
+// queda comido por el string.
+%}
 <STRING_LINE_CONTEXT>[^\n]+			{ return StringLexemeAction(); }
 <STRING_LINE_CONTEXT>"\n"			{ return LeaveStringContextLexemeAction(); }
 
