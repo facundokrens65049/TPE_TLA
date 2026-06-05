@@ -35,4 +35,16 @@ char * escape(const char * string);
  */
 char * indentation(const char character, const unsigned int level, const unsigned int size);
 
+/**
+ * Normalizes a category identifier to lowercase ASCII without accents. The
+ * grammar allows UTF-8 letters from the Latin-1 supplement block (lead byte
+ * 0xC3), so the common Spanish accented vowels and "ñ" are folded to their
+ * base letter; every other byte is lowercased as ASCII. The returned string
+ * uses heap-memory and must be freed.
+ *
+ * This is the single source of truth shared by the semantic analyzer (which
+ * fills the symbol table) and the code generator (which emits the categories).
+ */
+char * normalizeCategory(const char * raw);
+
 #endif

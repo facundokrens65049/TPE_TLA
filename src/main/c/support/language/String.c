@@ -96,8 +96,40 @@ char * escape(const char * string) {
 char * indentation(const char character, const unsigned int level, const unsigned int size) {
 	const unsigned int indentationLength = level * size;
 	char * indentation = calloc(1 + indentationLength, sizeof(char));
-	for (int k = 0; k < indentationLength; ++k) {
+	for (unsigned int k = 0; k < indentationLength; ++k) {
 		indentation[k] = character;
 	}
 	return indentation;
+}
+
+char * normalizeCategory(const char * raw) {
+	const size_t length = strlen(raw);
+	// una secuencia UTF-8 de 2 bytes colapsa a 1, asi que length alcanza de sobra
+	char * normalized = malloc(length + 1);
+	size_t out = 0;
+	for (size_t in = 0; in < length;) {
+		const unsigned char byte = (unsigned char) raw[in];
+		if (byte == 0xC3 && in + 1 < length) {
+			const unsigned char tail = (unsigned char) raw[in + 1];
+			char folded = '\0';
+			switch (tail) {
+				case 0xA1: case 0x81: folded = 'a'; break; // á Á
+				case 0xA9: case 0x89: folded = 'e'; break; // é É
+				case 0xAD: case 0x8D: folded = 'i'; break; // í Í
+				case 0xB3: case 0x93: folded = 'o'; break; // ó Ó
+				case 0xBA: case 0x9A: case 0xBC: case 0x9C: folded = 'u'; break; // ú Ú ü Ü
+				case 0xB1: case 0x91: folded = 'n'; break; // ñ Ñ
+				default: break;
+			}
+			if (folded != '\0') {
+				normalized[out++] = folded;
+				in += 2;
+				continue;
+			}
+		}
+		normalized[out++] = (char) tolower(byte);
+		in += 1;
+	}
+	normalized[out] = '\0';
+	return normalized;
 }
