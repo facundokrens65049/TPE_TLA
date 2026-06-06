@@ -1,6 +1,8 @@
 #ifndef COMPILER_STATE_HEADER
 #define COMPILER_STATE_HEADER
 
+#include "SymbolTable.h"
+
 /**
  * The global state of the compiler. Should transport every data structure
  * needed across the different phases of a compilation.
@@ -12,14 +14,11 @@ typedef struct {
 	void * abstractSyntaxTree;
 
 	/**
-	 * The computed value of the entire program (only for the calculator). You
-	 * should change or remove this field, or a random child will die, and it
-	 * will be your fault.
+	 * The semantic symbol table, populated during semantic analysis and
+	 * consumed by code generation. NULL until the semantic phase builds it.
 	 */
-	signed int value;
+	SymbolTable * symbolTable;
 
-	// TODO: Add a symbol table.
-	// TODO: Add an stack to handle nested scopes.
 	// TODO: Add more configuration.
 	// TODO: Add whatever you need.
 	// TODO: ...
