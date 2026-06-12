@@ -1,5 +1,4 @@
 [![✗](https://img.shields.io/badge/Release-v2.0.0-ffb600.svg?style=for-the-badge)](https://github.com/facundokrens65049/TPE_TLA/releases)
-
 [![✗](https://github.com/facundokrens65049/TPE_TLA/actions/workflows/pipeline.yaml/badge.svg?branch=development)](https://github.com/facundokrens65049/TPE_TLA/actions/workflows/pipeline.yaml)
 
 # TPE_TLA — Compilador de un DSL de Finanzas Personales
@@ -143,11 +142,7 @@ reporte html desde 01-01-2026 hasta 31-03-2026
       `Sin operaciones en el periodo.` seguido del balance
       (`Sin movimientos en el periodo.`).
 
-   **Auto-persistencia con `psql`:** los **tres formatos** emiten, además del `SELECT`
-   "puro" portable, un bloque de meta-comandos de `psql` (`\gset`, `\pset`, `\o`,
-   `\echo`) que captura el resultado a un archivo `reporte_<TIMESTAMP>.<ext>` en el
-   **CWD del cliente** (`.txt`, `.html` o `.pdf` según el formato). Otros clientes
-   ignoran los meta-comandos, pero ya recibieron el contenido en el `SELECT` previo.
+   **Auto-persistencia con `psql`:** los **tres formatos** emiten, además del `SELECT` "puro" portable, un bloque de meta-comandos de `psql` (`\gset`, `\pset`, `\o`, `\echo`) que captura el resultado a un archivo `reporte_<TIMESTAMP>.<ext>` en el **CWD del cliente** (`.txt`, `.html` o `.pdf` según el formato). Otros clientes pueden rechazarlos, aunque el SELECT puro ya contiene el reporte.
 
 El compilador comunica el resultado por **código de salida**: `0` si el programa es
 aceptado, distinto de `0` si es rechazado (léxico, sintáctico o semántico).

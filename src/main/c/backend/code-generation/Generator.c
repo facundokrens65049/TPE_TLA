@@ -1,7 +1,6 @@
 #include "Generator.h"
 #include "../domain-specific/HtmlReport.h"
 #include "../domain-specific/PdfReport.h"
-#include "../domain-specific/ReportModel.h"
 #include "../domain-specific/TextReport.h"
 #include "../../support/io/EmitSql.h"
 #include "../../support/language/DateUtils.h"
@@ -93,6 +92,26 @@ static DateValue _baseDate(const Date * date, char * buffer) {
 	const DateValue value = (date != NULL) ? _resolveDate(date) : today();
 	formatDateValueIso(value, buffer);
 	return value;
+}
+
+// Resuelve un DatePeriod del AST a sus extremos en ISO (YYYY-MM-DD, 10 chars
+// + '\0', asi que los buffers deben tener al menos 11 bytes).
+static void _resolvePeriodBounds(const DatePeriod * period, char * fromBuffer, char * toBuffer) {
+	if (period->kind == DATE_PERIOD_RANGE) {
+		formatDateValueIso(_resolveDate(period->fromDate), fromBuffer);
+		formatDateValueIso(_resolveDate(period->toDate), toBuffer);
+		return;
+	}
+	const DateValue close = today();
+	DateValue start = close;
+	switch (period->frequency->kind) {
+		case FREQUENCY_MONTHLY: start = addMonths(close, -1); break;
+		case FREQUENCY_WEEKLY:  start = addDays(close, -7); break;
+		case FREQUENCY_YEARLY:  start = addMonths(close, -12); break;
+		default:                start = addMonths(close, -1); break;
+	}
+	formatDateValueIso(start, fromBuffer);
+	formatDateValueIso(close, toBuffer);
 }
 
 /* DDL */
@@ -328,27 +347,42 @@ static void _generateFinalize(const FinalizeSentence * finalize) {
 static void _generateQuery(const QuerySentence * query) {
 	char fromBuffer[11];
 	char toBuffer[11];
-	resolvePeriodBounds(query->period, fromBuffer, toBuffer);
+	_resolvePeriodBounds(query->period, fromBuffer, toBuffer);
 	emitSql("SELECT " OPERATION_COLUMNS "\n");
 	emitSql("FROM operaciones\n");
 	emitSql("WHERE fecha BETWEEN DATE '%s' AND DATE '%s'\n", fromBuffer, toBuffer);
 	emitSql("ORDER BY fecha, id;\n\n");
 }
 
-// Puntero a una funcion que emite un SELECT (sin ';' final) para un periodo.
+// Puntero a una funcion del dominio que CONSTRUYE el SELECT (sin ';' final)
+// para un rango de fechas ISO ya resuelto. Devuelve heap; el caller libera.
 // Permite que _emitReportSavingBlock sea generico: el mismo bloque psql
-// auto-persiste PDFs, texto plano o HTML segun el emisor que recibe.
-typedef void (*ReportSelectEmitter)(const DatePeriod * period);
+// auto-persiste PDFs, texto plano o HTML segun el builder que recibe.
+typedef char * (*ReportSelectBuilder)(const char * from, const char * to);
 
-// Imprime el bloque psql que captura el resultado de `emitSelect` a un archivo
+// Emite a stdout el SELECT construido por `buildSelect`, libera el string y
+// agrega el ';' final.
+static void _emitSelectAndFree(
+	ReportSelectBuilder buildSelect,
+	const char * from,
+	const char * to
+) {
+	char * sql = buildSelect(from, to);
+	emitSql("%s", sql);
+	free(sql);
+	emitSql(";\n");
+}
+
+// Imprime el bloque psql que captura el resultado de `buildSelect` a un archivo
 // 'reporte_<TIMESTAMP>.<extension>' en el CWD del cliente psql. Los meta-
 // comandos `\gset`, `\pset`, `\o`, `\echo` son del cliente (no SQL estandar):
 // otros clientes los van a rechazar, pero el script ya emitio antes el SELECT
 // "puro" con el contenido, asi que la informacion no se pierde.
 static void _emitReportSavingBlock(
 	const char * extension,
-	const DatePeriod * period,
-	ReportSelectEmitter emitSelect
+	const char * from,
+	const char * to,
+	ReportSelectBuilder buildSelect
 ) {
 	emitSql("-- Auto-persistencia con psql: si se ejecuta con 'psql -f', el reporte\n");
 	emitSql("--    se guarda en el CWD del cliente como\n");
@@ -359,8 +393,7 @@ static void _emitReportSavingBlock(
 	emitSql("\\pset tuples_only on\n");
 	emitSql("\\pset recordsep ''\n");
 	emitSql("\\o :fname\n");
-	emitSelect(period);
-	emitSql(";\n");
+	_emitSelectAndFree(buildSelect, from, to);
 	emitSql("\\o\n");
 	emitSql("\\pset format aligned\n");
 	emitSql("\\pset tuples_only off\n");
@@ -369,25 +402,28 @@ static void _emitReportSavingBlock(
 }
 
 static void _generateReport(const ReportSentence * report) {
-	const DatePeriod * period = report->period;
+	char fromBuffer[11];
+	char toBuffer[11];
+	_resolvePeriodBounds(report->period, fromBuffer, toBuffer);
+
 	const char * extension = NULL;
-	ReportSelectEmitter emitSelect = NULL;
+	ReportSelectBuilder buildSelect = NULL;
 
 	switch (report->format->kind) {
 		case REPORT_FORMAT_HTML:
 			emitSql("-- Reporte (formato HTML: documento HTML completo armado en SQL).\n");
 			extension = "html";
-			emitSelect = emitHtmlReportSelect;
+			buildSelect = buildHtmlReportSelect;
 			break;
 		case REPORT_FORMAT_PLAIN_TEXT:
 			emitSql("-- Reporte (formato texto plano: tabla ASCII alineada).\n");
 			extension = "txt";
-			emitSelect = emitTextReportSelect;
+			buildSelect = buildTextReportSelect;
 			break;
 		case REPORT_FORMAT_PDF:
 			emitSql("-- Reporte (formato PDF: documento PDF 1.4 armado en SQL).\n");
 			extension = "pdf";
-			emitSelect = emitPdfReportSelect;
+			buildSelect = buildPdfReportSelect;
 			break;
 		default:
 			return;
@@ -397,20 +433,16 @@ static void _generateReport(const ReportSentence * report) {
 	//    una fila/columna. El PDF se devuelve como text; el HTML como un
 	//    documento completo; el texto plano como una fila por operacion.
 	emitSql("-- 1) SELECT puro: devuelve el contenido del reporte (cualquier cliente).\n");
-	emitSelect(period);
-	emitSql(";\n\n");
+	_emitSelectAndFree(buildSelect, fromBuffer, toBuffer);
+	emitSql("\n");
 
 	// 2) Bloque de meta-comandos psql que copia el mismo SELECT a un archivo
 	//    con timestamp en el CWD del cliente.
-	_emitReportSavingBlock(extension, period, emitSelect);
+	_emitReportSavingBlock(extension, fromBuffer, toBuffer, buildSelect);
 }
 
 static void _generateSentence(const Sentence * sentence, const char * currency) {
 	switch (sentence->kind) {
-		case SENTENCE_CURRENCY:
-			// la divisa activa sale de la tabla de simbolos; aca solo dejamos rastro
-			emitSql("-- divisa activa: %s\n", sentence->currencySentence->id);
-			break;
 		case SENTENCE_EXPENSE:
 			_generateExpense(sentence->expenseSentence, currency);
 			break;
@@ -446,12 +478,25 @@ static void _generateSentence(const Sentence * sentence, const char * currency) 
 void executeGenerator(CompilerState * compilerState) {
 	logDebugging(_logger, "Generating PostgreSQL script...");
 	Program * program = compilerState->abstractSyntaxTree;
-	const char * currency = (compilerState->symbolTable != NULL)
-		? compilerState->symbolTable->activeCurrency
-		: "ARS";
+
+	// Divisa activa "en vivo" durante la generacion. La tabla de simbolos
+	// solo guarda la ULTIMA divisa declarada en el programa, asi que no
+	// sirve para sentencias intermedias. La default ('ARS') se aplica a
+	// cualquier operacion previa al primer 'divisa <ID>'.
+	const char * activeCurrency = "ARS";
+
 	_generatePrologue();
+
 	for (Sentences * sentences = program->sentences; sentences != NULL; sentences = sentences->next) {
-		_generateSentence(sentences->sentence, currency);
+		const Sentence * sentence = sentences->sentence;
+		if (sentence->kind == SENTENCE_CURRENCY) {
+			activeCurrency = sentence->currencySentence->id;
+			emitSql("-- divisa activa: %s\n", activeCurrency);
+		}
+		else {
+			_generateSentence(sentence, activeCurrency);
+		}
 	}
+
 	logDebugging(_logger, "Generation is done.");
 }
