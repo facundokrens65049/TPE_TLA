@@ -110,9 +110,32 @@ static bool _checkLiteralDate(const Date * date) {
 	return true;
 }
 
-static bool _checkPositiveAmount(const int amount, const char * what) {
+// Los montos viajan en centavos: imprimimos el numero "humano" cuando
+// reportamos.
+static void _formatCentavos(long long centavos, char * buffer, size_t size) {
+	const long long whole = centavos / 100;
+	const long long cents = (centavos % 100 + 100) % 100;
+	snprintf(buffer, size, "%lld.%02lld", whole, cents);
+}
+
+static bool _checkPositiveAmount(const long long amount, const char * what) {
 	if (amount <= 0) {
-		logError(_logger, "The %s amount must be greater than 0, but it is %d.", what, amount);
+		char buffer[32];
+		_formatCentavos(amount, buffer, sizeof(buffer));
+		logError(_logger, "The %s amount must be greater than 0, but it is %s.", what, buffer);
+		return false;
+	}
+	return true;
+}
+
+// Los campos que conceptualmente son enteros (ids de operacion, cantidad de
+// cuotas) viajan tambien en centavos despues del cambio a decimales. Para
+// volver al entero original tienen que ser un múltiplo de 100.
+static bool _checkWholeInteger(const long long centavos, const char * what) {
+	if (centavos % 100 != 0) {
+		char buffer[32];
+		_formatCentavos(centavos, buffer, sizeof(buffer));
+		logError(_logger, "The %s must be an integer, but it is %s.", what, buffer);
 		return false;
 	}
 	return true;
@@ -153,10 +176,15 @@ static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * tab
 			if (!_checkPositiveAmount(expense->number, "expense")) {
 				return FAILED;
 			}
-			if (expense->optionalInstallments != NULL && expense->optionalInstallments->count < 1) {
-				logError(_logger, "The installments count must be at least 1, but it is %d.",
-					expense->optionalInstallments->count);
-				return FAILED;
+			if (expense->optionalInstallments != NULL) {
+				if (!_checkWholeInteger(expense->optionalInstallments->count, "installments count")) {
+					return FAILED;
+				}
+				const long long installments = expense->optionalInstallments->count / 100;
+				if (installments < 1) {
+					logError(_logger, "The installments count must be at least 1, but it is %lld.", installments);
+					return FAILED;
+				}
 			}
 			if (expense->optionalDate != NULL && !_checkLiteralDate(expense->optionalDate->date)) {
 				return FAILED;
@@ -208,9 +236,15 @@ static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * tab
 		}
 		case SENTENCE_EDIT: {
 			EditSentence * edit = sentence->editSentence;
+			if (!_checkWholeInteger(edit->number, "operation id")) {
+				return FAILED;
+			}
 			for (EditFieldList * node = edit->fields; node != NULL; node = node->next) {
 				EditField * field = node->field;
 				if (field->kind == EDIT_FIELD_DATE && !_checkLiteralDate(field->date)) {
+					return FAILED;
+				}
+				if (field->kind == EDIT_FIELD_AMOUNT && !_checkPositiveAmount(field->amount, "edit amount")) {
 					return FAILED;
 				}
 				if (field->kind == EDIT_FIELD_CATEGORY) {
@@ -221,6 +255,9 @@ static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * tab
 		}
 		case SENTENCE_DELETE:
 			// la existencia del id se chequea en runtime contra la DB
+			if (!_checkWholeInteger(sentence->deleteSentence->number, "operation id")) {
+				return FAILED;
+			}
 			break;
 		case SENTENCE_REPORT: {
 			DatePeriod * period = sentence->reportSentence->period;
@@ -232,6 +269,9 @@ static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * tab
 		}
 		case SENTENCE_FINALIZE:
 			// existencia del id y compatibilidad de tipo: chequeos de runtime (DB)
+			if (!_checkWholeInteger(sentence->finalizeSentence->number, "operation id")) {
+				return FAILED;
+			}
 			break;
 		default:
 			logError(_logger, "The specified sentence kind is unknown: %d", sentence->kind);

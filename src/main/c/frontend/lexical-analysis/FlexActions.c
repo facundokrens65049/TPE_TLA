@@ -1,4 +1,8 @@
 #include "FlexActions.h"
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
+#include <stdlib.h>
 
 /* MODULE INTERNAL STATE */
 
@@ -61,9 +65,96 @@ CompilationStatus KeywordLexemeAction(TokenLabel label) {
 	return status;
 }
 
+// Multiplica "value" por "factor" detectando overflow contra LLONG_MAX. Devuelve
+// false si el producto no entra en long long (overflow).
+static bool _safeMultiply(long long * value, long long factor) {
+	if (*value != 0 && factor > LLONG_MAX / *value) {
+		return false;
+	}
+	*value *= factor;
+	return true;
+}
+
+// Parsea el lexema de un NUMERO (puede tener parte decimal o multiplicadores
+// K/M/B encadenados, pegados o separados por espacios/tabs) y lo devuelve en
+// "out" representado como CENTAVOS (valor x 100). Todo el flujo de monto
+// trabaja en centavos para evitar floats.
+static bool _parseNumberWithMultipliers(const char * lexeme, long long * out) {
+	errno = 0;
+	char * cursor = NULL;
+	long long whole = strtoll(lexeme, &cursor, 10);
+	if (errno == ERANGE || whole < 0) {
+		return false;
+	}
+
+	long long decimalCents = 0;
+	if (*cursor == '.' || *cursor == ',') {
+		++cursor;
+		// Tomamos los dos primeros digitos (más significativos) como centavos y truncamos el resto:
+		// ej, "100.555" -> 100.55, "100.999" -> 100.99 (no redondea). La base
+		// guarda NUMERIC(15,2), asi que la precision adicional no es
+		// representable y la decision es perderla en silencio en vez de
+		// rechazar el programa. No se lanza error si hay más de dos decimales.
+		int digits = 0;
+		while (isdigit((unsigned char) *cursor)) {
+			if (digits < 2) {
+				decimalCents = decimalCents * 10 + (*cursor - '0');
+			}
+			++cursor;
+			++digits;
+		}
+		if (digits == 0) {
+			return false;
+		}
+		if (digits == 1) {
+			decimalCents *= 10;
+		}
+	}
+
+	// Centavos = whole * 100 + decimalCents (asegurado < 100).
+	long long value = whole;
+	if (!_safeMultiply(&value, 100LL)) {
+		return false;
+	}
+	if (value > LLONG_MAX - decimalCents) {
+		return false;
+	}
+	value += decimalCents;
+
+	while (*cursor != '\0') {
+		while (*cursor == ' ' || *cursor == '\t') {
+			++cursor;
+		}
+		if (*cursor == '\0') {
+			break;
+		}
+		long long factor = 0;
+		switch (*cursor) {
+			case 'k': case 'K': factor = 1000LL; break;
+			case 'm': case 'M': factor = 1000000LL; break;
+			case 'b': case 'B': factor = 1000000000LL; break;
+			default:
+				return false;
+		}
+		++cursor;
+		if (!_safeMultiply(&value, factor)) {
+			return false;
+		}
+	}
+	*out = value;
+	return true;
+}
+
 CompilationStatus NumberLexemeAction() {
 	Token * token = createToken(_lexicalAnalyzer, NUMERO);
-	token->semanticValue->integer = atoi(token->lexeme);
+	long long value = 0;
+	if (!_parseNumberWithMultipliers(token->lexeme, &value)) {
+		logError(_logger, "Malformed numeric literal (too many decimals, overflow or bad multiplier): \"%s\".", token->lexeme);
+		_logTokenAction(__FUNCTION__, token);
+		destroyToken(token);
+		return FAILED;
+	}
+	token->semanticValue->integer = value;
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
 	destroyToken(token);

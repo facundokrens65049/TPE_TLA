@@ -61,14 +61,18 @@ Detalles:
 * **Fechas:** absolutas en formato `dd-mm-yyyy`, o relativas (`ayer`, `hoy`, `maniana`).
 * **Períodos predefinidos:** `semanal`, `mensual`, `anual` (toman la fecha actual como cierre).
 * **Palabras reservadas:** no son *case sensitive* e ignoran tildes (`Descripcion` ≡ `descripción`).
+* **Identificadores** (categorías, divisas): empiezan con letra (con o sin tilde / `ñ`) y pueden contener letras, dígitos, `_` y `-` (p. ej. `gastos-fijos`, `USD-BLUE`). El guion no puede ir al inicio.
 * **Descripción:** todo lo que sigue a `descripcion` es texto libre, truncado a 80 caracteres.
+* **Montos:** números sin signo, con dos decimales útiles. Como separador decimal se acepta `.` o `,`, **a lo sumo uno** por monto (`100.50` ≡ `100,50`; mezclar (`100,50.5`) es error léxico). Si se escriben más de dos decimales, se **truncan** (no se redondea) a los dos primeros, ya que la base persiste como `NUMERIC(15,2)`: `100.555` → `100.55`, `99.999` → `99.99`. Admiten sufijos multiplicadores `K` (×10³), `M` (×10⁶) y `B` (×10⁹), pegados o separados por espacios/tabs (no por saltos de línea), encadenables y *case-insensitive*: `5K` ≡ `5 k`, `1,5KB` ≡ `1.5 k b` ≡ 1.5·10¹². Internamente se trabaja en centavos sobre `int64` (~9.22·10¹⁸); si la cuenta se desborda, el lexema se rechaza.
+* **Identificadores numéricos:** `cuotas N` y los ids referenciados por `editar`/`eliminar`/`finalizar` deben ser enteros (sin parte decimal). `editar 5.5 ...` o `cuotas 6.5` se rechazan en análisis semántico.
 
 Ejemplos:
 
 ```text
 divisa ARS
-gasto 180000 cuotas 6 categoria electrodomesticos descripcion heladera nueva
-suscripcion 7999 mensual categoria streaming desde 01-03-2026 descripcion plataforma de peliculas
+gasto 180K cuotas 6 categoria electrodomesticos descripcion heladera nueva
+suscripcion 7999.99 mensual categoria streaming desde 01-03-2026 descripcion plataforma de peliculas
+ingreso 1.5 M categoria sueldo
 reporte html desde 01-01-2026 hasta 31-03-2026
 ```
 
@@ -76,8 +80,9 @@ reporte html desde 01-01-2026 hasta 31-03-2026
 
 1. **Frontend (Flex + Bison):** análisis léxico y sintáctico; construye el AST.
 2. **Análisis semántico:** valida estáticamente que
-   * los montos de `gasto`/`ingreso`/`suscripcion` sean **positivos**;
-   * la cantidad de `cuotas` sea **mayor que 0**;
+   * los montos de `gasto`/`ingreso`/`suscripcion`/`editar monto` sean **positivos**;
+   * la cantidad de `cuotas` sea **un entero ≥ 1** (sin parte decimal);
+   * los ids de `editar`/`eliminar`/`finalizar` sean **enteros** (sin parte decimal);
    * las fechas literales sean **válidas según el calendario** (incluyendo años bisiestos);
    * los rangos de `consultar`/`reporte` sean **consistentes** (`desde ≤ hasta`);
    * una `suscripcion` no tenga fecha de finalización **anterior** a la de inicio.

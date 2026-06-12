@@ -1,0 +1,4 @@
+divisa USD-BLUE
+gasto 1000 categoria gastos-fijos descripcion alquiler
+ingreso 50000 categoria sueldo-bruto
+suscripcion 9.99 mensual categoria servicio-streaming desde hoy

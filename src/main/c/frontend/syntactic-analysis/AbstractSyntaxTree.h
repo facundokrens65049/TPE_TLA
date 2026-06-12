@@ -107,7 +107,7 @@ struct Date {
 struct EditField {
 	EditFieldKind kind;
 	union {
-		int amount;
+		long long amount;
 		char * categoryId;
 		Date * date;
 		char * description;
@@ -155,11 +155,11 @@ struct OptionalCategory {
 };
 
 struct OptionalInstallments {
-	int count;
+	long long count;
 };
 
 struct FinalizeSentence {
-	int number;
+	long long number;
 };
 
 struct ReportSentence {
@@ -168,11 +168,11 @@ struct ReportSentence {
 };
 
 struct DeleteSentence {
-	int number;
+	long long number;
 };
 
 struct EditSentence {
-	int number;
+	long long number;
 	EditFieldList * fields;
 };
 
@@ -181,7 +181,7 @@ struct QuerySentence {
 };
 
 struct SubscriptionSentence {
-	int number;
+	long long number;
 	Frequency * frequency;
 	OptionalCategory * optionalCategory;
 	OptionalFrom * optionalFrom;
@@ -190,14 +190,14 @@ struct SubscriptionSentence {
 };
 
 struct IncomeSentence {
-	int number;
+	long long number;
 	OptionalCategory * optionalCategory;
 	OptionalDate * optionalDate;
 	OptionalDescription * optionalDescription;
 };
 
 struct ExpenseSentence {
-	int number;
+	long long number;
 	OptionalInstallments * optionalInstallments;
 	OptionalCategory * optionalCategory;
 	OptionalDate * optionalDate;

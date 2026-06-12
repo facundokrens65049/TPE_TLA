@@ -24,7 +24,7 @@ Date * StringDateSemanticAction(const char * string);
 EditField * DescriptionEditFieldSemanticAction(const char * string);
 EditField * DateEditFieldSemanticAction(Date * date);
 EditField * CategoryEditFieldSemanticAction(const char * id);
-EditField * AmountEditFieldSemanticAction(const int amount);
+EditField * AmountEditFieldSemanticAction(const long long amount);
 
 EditFieldList * SingleEditFieldSemanticAction(EditField * field);
 EditFieldList * ConstructEditFieldsSemanticAction(EditFieldList * tail, EditField * head);
@@ -45,16 +45,16 @@ OptionalDate * PresentOptionalDateSemanticAction(Date * date);
 OptionalCategory * EmptyOptionalCategorySemanticAction();
 OptionalCategory * PresentOptionalCategorySemanticAction(const char * id);
 OptionalInstallments * EmptyOptionalInstallmentsSemanticAction();
-OptionalInstallments * PresentOptionalInstallmentsSemanticAction(const int count);
+OptionalInstallments * PresentOptionalInstallmentsSemanticAction(const long long count);
 
-FinalizeSentence * FinalizeSentenceSemanticAction(const int number);
+FinalizeSentence * FinalizeSentenceSemanticAction(const long long number);
 ReportSentence * ReportSentenceSemanticAction(ReportFormat * format, DatePeriod * period);
-DeleteSentence * DeleteSentenceSemanticAction(const int number);
-EditSentence * EditSentenceSemanticAction(const int number, EditFieldList * fields);
+DeleteSentence * DeleteSentenceSemanticAction(const long long number);
+EditSentence * EditSentenceSemanticAction(const long long number, EditFieldList * fields);
 QuerySentence * QuerySentenceSemanticAction(DatePeriod * period);
-SubscriptionSentence * SubscriptionSentenceSemanticAction(const int number, Frequency * frequency, OptionalCategory * optionalCategory, OptionalFrom * optionalFrom, OptionalUntil * optionalUntil, OptionalDescription * optionalDescription);
-IncomeSentence * IncomeSentenceSemanticAction(const int number, OptionalCategory * optionalCategory, OptionalDate * optionalDate, OptionalDescription * optionalDescription);
-ExpenseSentence * ExpenseSentenceSemanticAction(const int number, OptionalInstallments * optionalInstallments, OptionalCategory * optionalCategory, OptionalDate * optionalDate, OptionalDescription * optionalDescription);
+SubscriptionSentence * SubscriptionSentenceSemanticAction(const long long number, Frequency * frequency, OptionalCategory * optionalCategory, OptionalFrom * optionalFrom, OptionalUntil * optionalUntil, OptionalDescription * optionalDescription);
+IncomeSentence * IncomeSentenceSemanticAction(const long long number, OptionalCategory * optionalCategory, OptionalDate * optionalDate, OptionalDescription * optionalDescription);
+ExpenseSentence * ExpenseSentenceSemanticAction(const long long number, OptionalInstallments * optionalInstallments, OptionalCategory * optionalCategory, OptionalDate * optionalDate, OptionalDescription * optionalDescription);
 CurrencySentence * CurrencySentenceSemanticAction(const char * id);
 
 Sentence * SentenceFromFinalizeSemanticAction(FinalizeSentence * finalizeSentence);

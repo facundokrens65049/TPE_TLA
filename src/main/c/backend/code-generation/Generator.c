@@ -36,6 +36,20 @@ static void _out(const char * const format, ...) {
 	fflush(stdout);
 }
 
+// Los montos viajan en centavos como long long; al SQL salen con dos decimales
+// para encajar en NUMERIC(15,2). Los ids/cuotas tambien viajan en centavos pero
+// el analisis semantico ya garantizo que su parte fraccionaria es 0, asi que
+// "centavos / 100" reconstruye el entero original sin perdida.
+static void _emitAmount(long long centavos) {
+	const long long whole = centavos / 100;
+	const long long cents = (centavos % 100 + 100) % 100;
+	_out("%lld.%02lld", whole, cents);
+}
+
+static long long _wholeFromCentavos(long long centavos) {
+	return centavos / 100;
+}
+
 // escapa un string para meterlo en un literal SQL entre comillas simples
 // (cada ' se duplica). devuelve heap que libera el caller; no agrega comillas.
 static char * _sqlEscape(const char * raw) {
@@ -172,7 +186,9 @@ static void _generateExpense(const ExpenseSentence * expense, const char * curre
 	if (expense->optionalInstallments == NULL) {
 		// gasto simple: una sola fila
 		_out("INSERT INTO operaciones (tipo, monto, divisa, categoria, fecha, descripcion)\n");
-		_out("VALUES ('gasto', %d, '%s', ", expense->number, currency);
+		_out("VALUES ('gasto', ");
+		_emitAmount(expense->number);
+		_out(", '%s', ", currency);
 		_emitCategoryValue(expense->optionalCategory);
 		_out(", DATE '%s', ", base);
 		_emitDescriptionValue(expense->optionalDescription);
@@ -182,10 +198,12 @@ static void _generateExpense(const ExpenseSentence * expense, const char * curre
 
 	// gasto en cuotas: la operacion padre + N obligaciones futuras, una por mes
 	// desde la fecha base, todas con el id del padre (RETURNING).
-	const int count = expense->optionalInstallments->count;
+	const long long count = _wholeFromCentavos(expense->optionalInstallments->count);
 	_out("WITH nueva AS (\n");
 	_out("    INSERT INTO operaciones (tipo, monto, divisa, categoria, fecha, descripcion)\n");
-	_out("    VALUES ('cuotas', %d, '%s', ", expense->number, currency);
+	_out("    VALUES ('cuotas', ");
+	_emitAmount(expense->number);
+	_out(", '%s', ", currency);
 	_emitCategoryValue(expense->optionalCategory);
 	_out(", DATE '%s', ", base);
 	_emitDescriptionValue(expense->optionalDescription);
@@ -193,10 +211,11 @@ static void _generateExpense(const ExpenseSentence * expense, const char * curre
 	_out("    RETURNING id, fecha\n");
 	_out(")\n");
 	_out("INSERT INTO cuotas (operacion_id, numero_cuota, total_cuotas, monto, divisa, fecha)\n");
-	_out("SELECT nueva.id, gs.n, %d, ROUND(%d::numeric / %d, 2), '%s',\n",
-		count, expense->number, count, currency);
+	_out("SELECT nueva.id, gs.n, %lld, ROUND(", count);
+	_emitAmount(expense->number);
+	_out("::numeric / %lld, 2), '%s',\n", count, currency);
 	_out("       (nueva.fecha + ((gs.n - 1) * INTERVAL '1 month'))::date\n");
-	_out("FROM nueva, generate_series(1, %d) AS gs(n);\n\n", count);
+	_out("FROM nueva, generate_series(1, %lld) AS gs(n);\n\n", count);
 }
 
 static void _generateIncome(const IncomeSentence * income, const char * currency) {
@@ -205,7 +224,9 @@ static void _generateIncome(const IncomeSentence * income, const char * currency
 	_baseDate(date, base);
 
 	_out("INSERT INTO operaciones (tipo, monto, divisa, categoria, fecha, descripcion)\n");
-	_out("VALUES ('ingreso', %d, '%s', ", income->number, currency);
+	_out("VALUES ('ingreso', ");
+	_emitAmount(income->number);
+	_out(", '%s', ", currency);
 	_emitCategoryValue(income->optionalCategory);
 	_out(", DATE '%s', ", base);
 	_emitDescriptionValue(income->optionalDescription);
@@ -219,7 +240,9 @@ static void _generateSubscription(const SubscriptionSentence * subscription, con
 
 	_out("WITH nueva AS (\n");
 	_out("    INSERT INTO operaciones (tipo, monto, divisa, categoria, fecha, descripcion)\n");
-	_out("    VALUES ('suscripcion', %d, '%s', ", subscription->number, currency);
+	_out("    VALUES ('suscripcion', ");
+	_emitAmount(subscription->number);
+	_out(", '%s', ", currency);
 	_emitCategoryValue(subscription->optionalCategory);
 	_out(", DATE '%s', ", fromBuffer);
 	_emitDescriptionValue(subscription->optionalDescription);
@@ -227,7 +250,9 @@ static void _generateSubscription(const SubscriptionSentence * subscription, con
 	_out("    RETURNING id\n");
 	_out(")\n");
 	_out("INSERT INTO suscripciones (operacion_id, monto, divisa, categoria, frecuencia, desde, hasta, descripcion)\n");
-	_out("SELECT nueva.id, %d, '%s', ", subscription->number, currency);
+	_out("SELECT nueva.id, ");
+	_emitAmount(subscription->number);
+	_out(", '%s', ", currency);
 	_emitCategoryValue(subscription->optionalCategory);
 	_out(", '%s', DATE '%s', ", _frequencyName(subscription->frequency), fromBuffer);
 	if (subscription->optionalUntil != NULL) {
@@ -253,7 +278,8 @@ static void _generateEdit(const EditSentence * edit) {
 		first = false;
 		switch (field->kind) {
 			case EDIT_FIELD_AMOUNT:
-				_out("monto = %d", field->amount);
+				_out("monto = ");
+				_emitAmount(field->amount);
 				break;
 			case EDIT_FIELD_CATEGORY: {
 				char * literal = _categoryLiteral(field->categoryId);
@@ -277,29 +303,29 @@ static void _generateEdit(const EditSentence * edit) {
 				break;
 		}
 	}
-	_out(" WHERE id = %d;\n\n", edit->number);
+	_out(" WHERE id = %lld;\n\n", _wholeFromCentavos(edit->number));
 }
 
 static void _generateDelete(const DeleteSentence * del) {
-	_out("DELETE FROM operaciones WHERE id = %d;\n\n", del->number);
+	_out("DELETE FROM operaciones WHERE id = %lld;\n\n", _wholeFromCentavos(del->number));
 }
 
 static void _generateFinalize(const FinalizeSentence * finalize) {
-	const int id = finalize->number;
+	const long long id = _wholeFromCentavos(finalize->number);
 	// finalizar conserva el historial y solo corta lo futuro (relativo a
 	// CURRENT_DATE, que se resuelve al ejecutar). La restriccion de tipo va en
 	// el WHERE porque la existencia del id es un chequeo de runtime contra la DB.
 	_out("UPDATE operaciones SET estado = 'finalizado'\n");
-	_out("WHERE id = %d AND tipo IN ('suscripcion', 'cuotas');\n", id);
+	_out("WHERE id = %lld AND tipo IN ('suscripcion', 'cuotas');\n", id);
 
 	// suscripcion: cierra la ventana de recurrencia hoy. inocuo si el id es cuotas.
 	_out("UPDATE suscripciones SET hasta = CURRENT_DATE\n");
-	_out("WHERE operacion_id = %d AND (hasta IS NULL OR hasta > CURRENT_DATE);\n", id);
+	_out("WHERE operacion_id = %lld AND (hasta IS NULL OR hasta > CURRENT_DATE);\n", id);
 
 	// cuotas: cancela solo las futuras pendientes y deja las vencidas como
 	// historial (marca en vez de borrar). inocuo si el id es una suscripcion.
 	_out("UPDATE cuotas SET estado = 'cancelado'\n");
-	_out("WHERE operacion_id = %d AND fecha > CURRENT_DATE AND estado = 'pendiente';\n\n", id);
+	_out("WHERE operacion_id = %lld AND fecha > CURRENT_DATE AND estado = 'pendiente';\n\n", id);
 }
 
 // filtro de periodo como "fecha BETWEEN ... AND ...". un rango usa sus extremos

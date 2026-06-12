@@ -82,7 +82,7 @@ EditField * CategoryEditFieldSemanticAction(const char * id) {
 	return field;
 }
 
-EditField * AmountEditFieldSemanticAction(const int amount) {
+EditField * AmountEditFieldSemanticAction(const long long amount) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	EditField * field = calloc(1, sizeof(EditField));
 	field->kind = EDIT_FIELD_AMOUNT;
@@ -194,14 +194,14 @@ OptionalInstallments * EmptyOptionalInstallmentsSemanticAction() {
 	return NULL;
 }
 
-OptionalInstallments * PresentOptionalInstallmentsSemanticAction(const int count) {
+OptionalInstallments * PresentOptionalInstallmentsSemanticAction(const long long count) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	OptionalInstallments * optional = calloc(1, sizeof(OptionalInstallments));
 	optional->count = count;
 	return optional;
 }
 
-FinalizeSentence * FinalizeSentenceSemanticAction(const int number) {
+FinalizeSentence * FinalizeSentenceSemanticAction(const long long number) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	FinalizeSentence * sentence = calloc(1, sizeof(FinalizeSentence));
 	sentence->number = number;
@@ -216,14 +216,14 @@ ReportSentence * ReportSentenceSemanticAction(ReportFormat * format, DatePeriod 
 	return sentence;
 }
 
-DeleteSentence * DeleteSentenceSemanticAction(const int number) {
+DeleteSentence * DeleteSentenceSemanticAction(const long long number) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	DeleteSentence * sentence = calloc(1, sizeof(DeleteSentence));
 	sentence->number = number;
 	return sentence;
 }
 
-EditSentence * EditSentenceSemanticAction(const int number, EditFieldList * fields) {
+EditSentence * EditSentenceSemanticAction(const long long number, EditFieldList * fields) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	EditSentence * sentence = calloc(1, sizeof(EditSentence));
 	sentence->number = number;
@@ -238,7 +238,7 @@ QuerySentence * QuerySentenceSemanticAction(DatePeriod * period) {
 	return sentence;
 }
 
-SubscriptionSentence * SubscriptionSentenceSemanticAction(const int number, Frequency * frequency, OptionalCategory * optionalCategory, OptionalFrom * optionalFrom, OptionalUntil * optionalUntil, OptionalDescription * optionalDescription) {
+SubscriptionSentence * SubscriptionSentenceSemanticAction(const long long number, Frequency * frequency, OptionalCategory * optionalCategory, OptionalFrom * optionalFrom, OptionalUntil * optionalUntil, OptionalDescription * optionalDescription) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	SubscriptionSentence * sentence = calloc(1, sizeof(SubscriptionSentence));
 	sentence->number = number;
@@ -250,7 +250,7 @@ SubscriptionSentence * SubscriptionSentenceSemanticAction(const int number, Freq
 	return sentence;
 }
 
-IncomeSentence * IncomeSentenceSemanticAction(const int number, OptionalCategory * optionalCategory, OptionalDate * optionalDate, OptionalDescription * optionalDescription) {
+IncomeSentence * IncomeSentenceSemanticAction(const long long number, OptionalCategory * optionalCategory, OptionalDate * optionalDate, OptionalDescription * optionalDescription) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	IncomeSentence * sentence = calloc(1, sizeof(IncomeSentence));
 	sentence->number = number;
@@ -260,7 +260,7 @@ IncomeSentence * IncomeSentenceSemanticAction(const int number, OptionalCategory
 	return sentence;
 }
 
-ExpenseSentence * ExpenseSentenceSemanticAction(const int number, OptionalInstallments * optionalInstallments, OptionalCategory * optionalCategory, OptionalDate * optionalDate, OptionalDescription * optionalDescription) {
+ExpenseSentence * ExpenseSentenceSemanticAction(const long long number, OptionalInstallments * optionalInstallments, OptionalCategory * optionalCategory, OptionalDate * optionalDate, OptionalDescription * optionalDescription) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	ExpenseSentence * sentence = calloc(1, sizeof(ExpenseSentence));
 	sentence->number = number;

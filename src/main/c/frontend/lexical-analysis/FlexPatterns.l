@@ -107,9 +107,10 @@ letter			[a-zA-Z]
 
 {digit}{2}"-"{digit}{2}"-"{digit}{4}			{ return DateLexemeAction(); }
 
-{digit}+							{ return NumberLexemeAction(); }
+{digit}+([.,]{digit}+)?([ \t]*[kKmMbB])+/[^a-zA-Z0-9_]	{ return NumberLexemeAction(); }
+{digit}+([.,]{digit}+)?				{ return NumberLexemeAction(); }
 
-({letter}|\xc3[\x80-\xbf])({letter}|{digit}|"_"|\xc3[\x80-\xbf])*		{ return IdentifierLexemeAction(); }
+({letter}|\xc3[\x80-\xbf])({letter}|{digit}|"_"|"-"|\xc3[\x80-\xbf])*		{ return IdentifierLexemeAction(); }
 
 {whitespace}						{ return IgnoredLexemeAction(); }
 .									{ return UnknownLexemeAction(); }

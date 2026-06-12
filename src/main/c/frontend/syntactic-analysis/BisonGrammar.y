@@ -26,7 +26,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %union {
 	/** Terminals. */
 
-	signed int integer;
+	long long integer;
 	TokenLabel token;
 	char * string;
 
