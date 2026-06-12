@@ -91,7 +91,63 @@ reporte html desde 01-01-2026 hasta 31-03-2026
      genera PostgreSQL.
 3. **Generación de código:** sobre un AST validado emite a `stdout` un **script SQL para
    PostgreSQL** (DDL idempotente + `INSERT`/`UPDATE`/`DELETE`/`SELECT` por sentencia,
-   derivación de cuotas, reportes en texto plano y HTML).
+   derivación de cuotas, reportes en texto plano, HTML y PDF).
+
+   Los tres reportes comparten el **modelo de filas** (un `UNION ALL` en SQL):
+   * **gasto** / **ingreso** → una fila por operación, columna `detalle` vacía.
+   * **cuotas** → una fila por **cuota individual** (no la operación padre), con
+     su fecha de vencimiento real, monto prorrateado y `detalle = "k/N"` (la
+     k-ésima cuota de N totales).
+   * **suscripción** → una fila por operación, `detalle` = frecuencia (`mensual`,
+     `semanal`, `anual`).
+
+   Columnas del reporte: `id`, `tipo`, `monto`, `divisa`, `categoria`, `fecha`,
+   `detalle`, `descripcion`.
+
+   **Balance neto:** al pie del reporte (después de la tabla) se incluye un
+   resumen con `ingresos`, `egresos` y `balance neto` (= ingresos − egresos)
+   **agrupado por divisa**. Los totales son la suma exacta de los montos
+   visibles en la tabla, así que el balance cuadra con la columna `monto` fila
+   por fila. En HTML el balance negativo se pinta rojo y el positivo verde.
+
+   * **Reporte texto plano:** un `SELECT` devuelve una **única fila** con una
+     tabla ASCII alineada (cabecera + separador + filas). `categoria` y
+     `descripcion` admiten **wrap multi-línea**: si superan el ancho de su
+     columna se reparten en líneas debajo (con el resto de las columnas en
+     blanco para no romper la alineación), en vez de truncarse. Pensado para
+     abrir en cualquier editor con fuente monoespaciada.
+   * **Reporte HTML:** un `SELECT` devuelve una **única fila** con un
+     **documento HTML5 completo** (DOCTYPE + `<head>` con CSS inline +
+     `<body>` con `<table>`). El wrap lo maneja el navegador (`vertical-align:
+     top`), así que las descripciones largas se muestran completas sin
+     necesidad de paginar.
+   * **Reporte PDF:** un `SELECT` devuelve una **única fila** con un documento
+     `PDF-1.4` construido enteramente en SQL puro (sin extensiones ni
+     herramientas externas).
+     * **Tamaño de hoja:** A4 **horizontal** (`842 × 595 pt`, ≈ `297 × 210 mm`).
+     * **Tipografías:** usa dos fuentes "base 14" del estándar PDF (las que
+       todo visor garantiza sin necesidad de embeber un `.ttf`):
+       - **Helvetica-Bold** (sans-serif) para títulos: `Reporte de
+         operaciones - pagina N`, `Periodo:`, `Balance del periodo`.
+       - **Courier** (monoespaciada) para la tabla y el balance, donde la
+         alineación de columnas con `rpad`/`lpad` lo requiere.
+    * **Paginación:** se hace por **líneas**, no por filas (una operación
+      con descripción larga puede ocupar 1+ líneas). Las líneas de datos se
+      reparten en páginas de **30 líneas** cada una. El balance se anexa
+      **al pie de la última página de datos** (separado por una línea en
+      blanco y un separador), dentro del mismo bloque de texto Courier que
+      la tabla. El umbral de 30 líneas deja ~10 líneas de margen para que
+      el balance entre cómodo aunque haya varias divisas distintas. El
+      objeto `/Pages` referencia a todas las páginas vía `/Kids` y
+      `/Count N`. Reportes vacíos generan una página única con
+      `Sin operaciones en el periodo.` seguido del balance
+      (`Sin movimientos en el periodo.`).
+
+   **Auto-persistencia con `psql`:** los **tres formatos** emiten, además del `SELECT`
+   "puro" portable, un bloque de meta-comandos de `psql` (`\gset`, `\pset`, `\o`,
+   `\echo`) que captura el resultado a un archivo `reporte_<TIMESTAMP>.<ext>` en el
+   **CWD del cliente** (`.txt`, `.html` o `.pdf` según el formato). Otros clientes
+   ignoran los meta-comandos, pero ya recibieron el contenido en el `SELECT` previo.
 
 El compilador comunica el resultado por **código de salida**: `0` si el programa es
 aceptado, distinto de `0` si es rechazado (léxico, sintáctico o semántico).

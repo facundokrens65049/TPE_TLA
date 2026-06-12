@@ -34,6 +34,28 @@ static void _logSyntacticAnalyzerAction(const char * functionName) {
 	logDebugging(_logger, "%s", functionName);
 }
 
+static Sentences * _reverseSentences(Sentences * head) {
+	Sentences * previous = NULL;
+	while (head != NULL) {
+		Sentences * next = head->next;
+		head->next = previous;
+		previous = head;
+		head = next;
+	}
+	return previous;
+}
+
+static EditFieldList * _reverseEditFields(EditFieldList * head) {
+	EditFieldList * previous = NULL;
+	while (head != NULL) {
+		EditFieldList * next = head->next;
+		head->next = previous;
+		previous = head;
+		head = next;
+	}
+	return previous;
+}
+
 /* PUBLIC FUNCTIONS */
 
 ReportFormat * ReportFormatSemanticAction(ReportFormatKind kind) {
@@ -97,12 +119,15 @@ EditFieldList * SingleEditFieldSemanticAction(EditField * field) {
 	return list;
 }
 
-EditFieldList * ConstructEditFieldsSemanticAction(EditFieldList * tail, EditField * head) {
+// La regla "editFields: editFields editField" es left-recursive: $1 es la lista
+// ya acumulada y $2 es el campo nuevo. Prepend O(1) (la lista queda invertida);
+// EditSentenceSemanticAction la da vuelta una sola vez con _reverseEditFields.
+EditFieldList * ConstructEditFieldsSemanticAction(EditFieldList * list, EditField * field) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	EditFieldList * list = calloc(1, sizeof(EditFieldList));
-	list->field = head;
-	list->next = tail;
-	return list;
+	EditFieldList * node = calloc(1, sizeof(EditFieldList));
+	node->field = field;
+	node->next = list;
+	return node;
 }
 
 Frequency * FrequencySemanticAction(FrequencyKind kind) {
@@ -227,7 +252,7 @@ EditSentence * EditSentenceSemanticAction(const long long number, EditFieldList 
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	EditSentence * sentence = calloc(1, sizeof(EditSentence));
 	sentence->number = number;
-	sentence->fields = fields;
+	sentence->fields = _reverseEditFields(fields);
 	return sentence;
 }
 
@@ -358,18 +383,21 @@ Sentences * SentenceSemanticAction(Sentence * sentence) {
 	return sentences;
 }
 
+// Idem ConstructEditFieldsSemanticAction: la prod "sentences -> sentences sentence" es
+// left-recursive. Prepend O(1); SentencesProgramSemanticAction invierte la
+// lista una sola vez al cerrar el Program.
 Sentences * SentencesSentenceSemanticAction(Sentences * sentences, Sentence * sentence) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Sentences * newSentences = calloc(1, sizeof(Sentences));
-	newSentences->sentence = sentence;
-	newSentences->next = sentences;
-	return newSentences;
+	Sentences * node = calloc(1, sizeof(Sentences));
+	node->sentence = sentence;
+	node->next = sentences;
+	return node;
 }
 
 Program * SentencesProgramSemanticAction(Sentences * sentences) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Program * program = calloc(1, sizeof(Program));
-	program->sentences = sentences;
+	program->sentences = _reverseSentences(sentences);
 	_compilerState->abstractSyntaxTree = program;
 	return program;
 }
