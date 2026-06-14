@@ -1,11 +1,19 @@
 #include "TextReport.h"
 #include "ReportModel.h"
 #include "../../../support/io/EmitSql.h"
+#include "../../../support/language/DateUtils.h"
 
 void emitTextReportSelect(const DatePeriod * period) {
 	char fromBuffer[ISO_DATE_BUFFER_SIZE];
 	char toBuffer[ISO_DATE_BUFFER_SIZE];
 	resolvePeriodBounds(period, fromBuffer, toBuffer);
+
+	// SQL DATE literals require ISO "YYYY-MM-DD"; for display we use the DSL's
+	// "DD-MM-YYYY" so the report header matches the input format.
+	char fromDisplay[ISO_DATE_BUFFER_SIZE];
+	char toDisplay[ISO_DATE_BUFFER_SIZE];
+	formatIsoAsDmy(fromBuffer, fromDisplay);
+	formatIsoAsDmy(toBuffer, toDisplay);
 
 	emitSql("WITH\n");
 	emitReportRowsCTE(fromBuffer, toBuffer, false);
@@ -13,7 +21,7 @@ void emitTextReportSelect(const DatePeriod * period) {
 	emitReportHeaderCTE();
 	emitSql("\n");
 	emitSql("SELECT 'Reporte de operaciones' || chr(10) ||\n");
-	emitSql("       'Periodo: %s a %s' || chr(10) || chr(10) ||\n", fromBuffer, toBuffer);
+	emitSql("       'Periodo: %s a %s' || chr(10) || chr(10) ||\n", fromDisplay, toDisplay);
 	emitSql("       (SELECT header_line FROM cabecera) || chr(10) ||\n");
 	emitSql("       (SELECT separator_line FROM cabecera) || chr(10) ||\n");
 	emitSql("       COALESCE(\n");
@@ -25,9 +33,9 @@ void emitTextReportSelect(const DatePeriod * period) {
 	emitSql("       (SELECT separator_line FROM cabecera) || chr(10) ||\n");
 	emitSql("       COALESCE(\n");
 	emitSql("           (SELECT string_agg(\n");
-	emitSql("               rpad(divisa, %d) || ' ingresos: ' || lpad(to_char(ingresos, 'FM9999999990.00'), 15) || chr(10) ||\n", COL_DIVISA_WIDTH);
-	emitSql("               rpad(divisa, %d) || ' egresos:  ' || lpad(to_char(egresos,  'FM9999999990.00'), 15) || chr(10) ||\n", COL_DIVISA_WIDTH);
-	emitSql("               rpad(divisa, %d) || ' balance:  ' || lpad(to_char(neto,     'FM9999999990.00'), 15),\n", COL_DIVISA_WIDTH);
+	emitSql("               rpad(divisa, %d) || ' ingresos: ' || lpad(to_char(ingresos, 'FM9999999990.00'), 15) || chr(10) ||\n", COL_CURRENCY_WIDTH);
+	emitSql("               rpad(divisa, %d) || ' egresos:  ' || lpad(to_char(egresos,  'FM9999999990.00'), 15) || chr(10) ||\n", COL_CURRENCY_WIDTH);
+	emitSql("               rpad(divisa, %d) || ' balance:  ' || lpad(to_char(neto,     'FM9999999990.00'), 15),\n", COL_CURRENCY_WIDTH);
 	emitSql("               chr(10) ORDER BY divisa\n");
 	emitSql("           ) FROM balance),\n");
 	emitSql("           '(sin movimientos en el periodo)'\n");

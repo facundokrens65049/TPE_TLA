@@ -106,7 +106,7 @@ char * indentation(const char character, const unsigned int level, const unsigne
 
 char * normalizeCategory(const char * raw) {
 	const size_t length = strlen(raw);
-	// una secuencia UTF-8 de 2 bytes colapsa a 1, asi que length alcanza de sobra
+	// a 2-byte UTF-8 sequence collapses to 1, so "length" is more than enough
 	char * normalized = malloc(length + 1);
 	size_t out = 0;
 	for (size_t in = 0; in < length;) {

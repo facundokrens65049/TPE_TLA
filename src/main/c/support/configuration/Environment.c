@@ -13,8 +13,8 @@ bool getBooleanOrDefault(const char * name, const bool defaultValue) {
 	if (strcmp(value, "false") == 0 || strcmp(value, "0") == 0) {
 		return false;
 	}
-	// Variable presente pero con un valor no reconocido (typo, "yes", etc.):
-	// caemos al default en vez de asumir silenciosamente false.
+	// Variable present but with an unrecognized value (typo, "yes", etc.):
+	// we fall back to the default instead of silently assuming false.
 	return defaultValue;
 }
 

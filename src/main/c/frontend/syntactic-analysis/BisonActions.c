@@ -58,17 +58,17 @@ static EditFieldList * _reverseEditFields(EditFieldList * head) {
 
 /* PUBLIC FUNCTIONS */
 
-// Nota sobre el manejo de memoria: a proposito NO chequeamos el retorno de cada
-// calloc en estas acciones. Cada una reserva apenas unos pocos bytes para un
-// nodo del arbol, y la unica forma de que calloc devuelva NULL es que el sistema
-// se haya quedado literalmente sin memoria. Si eso pasa, no hay nada util que el
-// compilador pueda seguir haciendo: el programa de entrada ni siquiera termina
-// de parsearse. Meterle un "if (== NULL)" a las ~30 acciones solo agregaria
-// ruido que nunca se ejecuta y ensuciaria la logica, sin un plan de recuperacion
-// real detras. Por eso reservamos el chequeo explicito para los pocos lugares
-// donde si importa: por ejemplo el realloc que agranda la tabla de categorias
-// (SemanticAnalyzer.c), donde un fallo podria perder un bloque ya valido o
-// dejar un puntero colgando, y ahi si propagamos el error.
+// Note on memory management: on purpose we do NOT check the return of every
+// calloc in these actions. Each one allocates just a few bytes for an AST
+// node, and the only way calloc could return NULL is if the system has
+// literally run out of memory. If that happens there is nothing useful the
+// compiler could keep doing: the input program will not even finish parsing.
+// Adding an "if (== NULL)" to the ~30 actions would only add noise that never
+// fires and clutter the logic, without a real recovery plan behind it. That's
+// why we reserve the explicit check for the few places where it does matter:
+// for example the realloc that grows the categories table
+// (SemanticAnalyzer.c), where a failure could lose an already-valid block or
+// leave a dangling pointer; there we do propagate the error.
 
 ReportFormat * ReportFormatSemanticAction(ReportFormatKind kind) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
@@ -131,9 +131,10 @@ EditFieldList * SingleEditFieldSemanticAction(EditField * field) {
 	return list;
 }
 
-// La regla "editFields: editFields editField" es left-recursive: $1 es la lista
-// ya acumulada y $2 es el campo nuevo. Prepend O(1) (la lista queda invertida);
-// EditSentenceSemanticAction la da vuelta una sola vez con _reverseEditFields.
+// The "editFields: editFields editField" production is left-recursive: $1 is
+// the already-accumulated list and $2 is the new field. O(1) prepend (the
+// list ends up reversed); EditSentenceSemanticAction reverses it once via
+// _reverseEditFields.
 EditFieldList * ConstructEditFieldsSemanticAction(EditFieldList * list, EditField * field) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	EditFieldList * node = calloc(1, sizeof(EditFieldList));
@@ -395,9 +396,10 @@ Sentences * SentenceSemanticAction(Sentence * sentence) {
 	return sentences;
 }
 
-// Idem ConstructEditFieldsSemanticAction: la prod "sentences -> sentences sentence" es
-// left-recursive. Prepend O(1); SentencesProgramSemanticAction invierte la
-// lista una sola vez al cerrar el Program.
+// Same as ConstructEditFieldsSemanticAction: the "sentences -> sentences
+// sentence" production is left-recursive. O(1) prepend;
+// SentencesProgramSemanticAction reverses the list once when closing the
+// Program.
 Sentences * SentencesSentenceSemanticAction(Sentences * sentences, Sentence * sentence) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Sentences * node = calloc(1, sizeof(Sentences));

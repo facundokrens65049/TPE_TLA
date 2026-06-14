@@ -3,13 +3,13 @@
 
 #include "../../../frontend/syntactic-analysis/AbstractSyntaxTree.h"
 
-// Emite un SELECT (sin ';\n' final) que devuelve UNA SOLA fila con un
-// documento PDF 1.4 (hoja A4 horizontal, fuentes base 14 Helvetica-Bold y
-// Courier) armado enteramente en SQL puro -- sin extensiones ni librerias
-// externas. La paginacion se hace por LINEAS (no filas) sobre el modelo
-// compartido con texto plano; el balance se anexa al pie de la ultima
-// pagina, dentro del mismo bloque BT/ET de la tabla. Reportes vacios
-// generan una unica pagina con 'Sin operaciones' + 'Sin movimientos'.
+// Emits a SELECT (without trailing ';\n') that returns a SINGLE row holding
+// a PDF 1.4 document (A4 landscape page, base-14 fonts Helvetica-Bold and
+// Courier) built entirely in pure SQL -- no extensions or external
+// libraries. Pagination is done by LINES (not rows) over the model shared
+// with plain text; the balance is appended at the foot of the last page,
+// inside the same BT/ET block as the table. Empty reports produce a single
+// page with 'Sin operaciones' + 'Sin movimientos'.
 void emitPdfReportSelect(const DatePeriod * period);
 
 #endif

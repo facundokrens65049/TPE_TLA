@@ -65,8 +65,8 @@ CompilationStatus KeywordLexemeAction(TokenLabel label) {
 	return status;
 }
 
-// Multiplica "value" por "factor" detectando overflow contra LLONG_MAX. Devuelve
-// false si el producto no entra en long long (overflow).
+// Multiplies "value" by "factor" detecting overflow against LLONG_MAX.
+// Returns false if the product does not fit into long long (overflow).
 static bool _safeMultiply(long long * value, long long factor) {
 	if (*value != 0 && factor > LLONG_MAX / *value) {
 		return false;
@@ -75,10 +75,10 @@ static bool _safeMultiply(long long * value, long long factor) {
 	return true;
 }
 
-// Parsea el lexema de un NUMERO (puede tener parte decimal o multiplicadores
-// K/M/B encadenados, pegados o separados por espacios/tabs) y lo devuelve en
-// "out" representado como CENTAVOS (valor x 100). Todo el flujo de monto
-// trabaja en centavos para evitar floats.
+// Parses the lexeme of a NUMERO (it may include a decimal part or chained
+// K/M/B multipliers, contiguous or separated by spaces/tabs) and returns it
+// in "out" represented as CENTS (value x 100). The whole amount pipeline
+// works in cents to avoid floats.
 static bool _parseNumberWithMultipliers(const char * lexeme, long long * out) {
 	errno = 0;
 	char * cursor = NULL;
@@ -90,11 +90,11 @@ static bool _parseNumberWithMultipliers(const char * lexeme, long long * out) {
 	long long decimalCents = 0;
 	if (*cursor == '.' || *cursor == ',') {
 		++cursor;
-		// Tomamos los dos primeros digitos (más significativos) como centavos y truncamos el resto:
-		// ej, "100.555" -> 100.55, "100.999" -> 100.99 (no redondea). La base
-		// guarda NUMERIC(15,2), asi que la precision adicional no es
-		// representable y la decision es perderla en silencio en vez de
-		// rechazar el programa. No se lanza error si hay más de dos decimales.
+		// Take the first two digits (most significant) as cents and truncate the rest:
+		// e.g. "100.555" -> 100.55, "100.999" -> 100.99 (does not round). The
+		// database stores NUMERIC(15,2), so the additional precision is not
+		// representable and the decision is to drop it silently instead of
+		// rejecting the program. No error is raised if there are more than two decimals.
 		int digits = 0;
 		while (isdigit((unsigned char) *cursor)) {
 			if (digits < 2) {
@@ -111,7 +111,7 @@ static bool _parseNumberWithMultipliers(const char * lexeme, long long * out) {
 		}
 	}
 
-	// Centavos = whole * 100 + decimalCents (asegurado < 100).
+	// Cents = whole * 100 + decimalCents (guaranteed < 100).
 	long long value = whole;
 	if (!_safeMultiply(&value, 100LL)) {
 		return false;

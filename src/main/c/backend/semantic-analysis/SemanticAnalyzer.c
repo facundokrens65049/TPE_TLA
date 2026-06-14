@@ -9,8 +9,8 @@
 
 static Logger * _logger = NULL;
 
-// La tabla de simbolos la maneja este modulo (para poder liberarla en el
-// shutdown, que no recibe estado) y ademas se publica en el CompilerState.
+// The symbol table is owned by this module (so it can be freed in the
+// shutdown, which receives no state) and is also published in the CompilerState.
 static SymbolTable * _symbolTable = NULL;
 
 static void _destroySymbolTable(SymbolTable * table);
@@ -50,8 +50,8 @@ static void _destroySymbolTable(SymbolTable * table) {
 	free(table);
 }
 
-// Agrega una categoria normalizada al set, salteando las que ya estan.
-// Devuelve false solo ante OOM, para que el analisis aborte la compilacion.
+// Adds a normalized category to the set, skipping those already present.
+// Returns false only on OOM, so the analyzer can abort compilation.
 static bool _registerCategory(SymbolTable * table, const char * rawId) {
 	char * normalized = normalizeCategory(rawId);
 	for (size_t i = 0; i < table->categoryCount; ++i) {
@@ -62,8 +62,8 @@ static bool _registerCategory(SymbolTable * table, const char * rawId) {
 	}
 	if (table->categoryCount == table->categoryCapacity) {
 		const size_t capacity = (table->categoryCapacity == 0) ? 4 : table->categoryCapacity * 2;
-		// realloc a un temporal: si falla, no perdemos el bloque original ni
-		// dejamos categories en NULL. Propagamos el error para abortar.
+		// realloc into a temporary: if it fails we neither lose the original
+		// block nor leave categories as NULL. We propagate the error to abort.
 		char ** grown = realloc(table->categories, capacity * sizeof(char *));
 		if (grown == NULL) {
 			logError(_logger, "Out of memory while registering category.");
@@ -79,7 +79,7 @@ static bool _registerCategory(SymbolTable * table, const char * rawId) {
 
 /* SEMANTIC RULES (helpers) */
 
-// Lleva cualquier fecha (literal o relativa) a un entero YYYYMMDD comparable.
+// Resolves any date (literal or relative) to a comparable YYYYMMDD integer.
 static DateValue _resolveDate(const Date * date) {
 	switch (date->kind) {
 		case DATE_KIND_LITERAL: return parseLiteralDate(date->literal);
@@ -90,8 +90,8 @@ static DateValue _resolveDate(const Date * date) {
 	}
 }
 
-// Toda fecha literal tiene que ser una fecha real. Las relativas (hoy/ayer/
-// maniana) y un date NULL (slot opcional ausente) son siempre validos.
+// Every literal date must be a real date. Relative ones (hoy/ayer/maniana)
+// and a NULL date (absent optional slot) are always valid.
 static bool _checkLiteralDate(const Date * date) {
 	if (date == NULL || date->kind != DATE_KIND_LITERAL) {
 		return true;
@@ -103,39 +103,38 @@ static bool _checkLiteralDate(const Date * date) {
 	return true;
 }
 
-// Los montos viajan en centavos: imprimimos el numero "humano" cuando
-// reportamos.
-static void _formatCentavos(long long centavos, char * buffer, size_t size) {
-	const long long whole = centavos / 100;
-	const long long cents = (centavos % 100 + 100) % 100;
-	snprintf(buffer, size, "%lld.%02lld", whole, cents);
+// Amounts travel in cents: we print the "human" number when we report.
+static void _formatCents(long long cents, char * buffer, size_t size) {
+	const long long whole = cents / 100;
+	const long long fractional = (cents % 100 + 100) % 100;
+	snprintf(buffer, size, "%lld.%02lld", whole, fractional);
 }
 
 static bool _checkPositiveAmount(const long long amount, const char * what) {
 	if (amount <= 0) {
 		char buffer[32];
-		_formatCentavos(amount, buffer, sizeof(buffer));
+		_formatCents(amount, buffer, sizeof(buffer));
 		logError(_logger, "The %s amount must be greater than 0, but it is %s.", what, buffer);
 		return false;
 	}
 	return true;
 }
 
-// Los campos que conceptualmente son enteros (ids de operacion, cantidad de
-// cuotas) viajan tambien en centavos despues del cambio a decimales. Para
-// volver al entero original tienen que ser un múltiplo de 100.
-static bool _checkWholeInteger(const long long centavos, const char * what) {
-	if (centavos % 100 != 0) {
+// Fields that are conceptually integers (operation ids, installment count)
+// also travel in cents after the switch to decimals. To recover the original
+// integer they must be a multiple of 100.
+static bool _checkWholeInteger(const long long cents, const char * what) {
+	if (cents % 100 != 0) {
 		char buffer[32];
-		_formatCentavos(centavos, buffer, sizeof(buffer));
+		_formatCents(cents, buffer, sizeof(buffer));
 		logError(_logger, "The %s must be an integer, but it is %s.", what, buffer);
 		return false;
 	}
 	return true;
 }
 
-// Valida los dos extremos del rango como literales, los resuelve y exige
-// desde <= hasta (un mismo dia es un rango valido). "context" nombra el error.
+// Validates both ends of the range as literals, resolves them and requires
+// from <= to (a single day is a valid range). "context" names the error.
 static bool _checkDateRange(const Date * fromDate, const Date * toDate, const char * context) {
 	if (!_checkLiteralDate(fromDate) || !_checkLiteralDate(toDate)) {
 		return false;
@@ -160,9 +159,9 @@ static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * tab
 static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * table) {
 	switch (sentence->kind) {
 		case SENTENCE_CURRENCY:
-			// La divisa no requiere validacion semantica (no hay unicidad ni
-			// declaracion previa). Su valor vigente se resuelve por-sentencia
-			// en la generacion de codigo, que es la unica fase que lo usa.
+			// The currency requires no semantic validation (no uniqueness nor
+			// prior declaration). Its current value is resolved per-sentence
+			// in code generation, which is the only phase that uses it.
 			break;
 		case SENTENCE_EXPENSE: {
 			ExpenseSentence * expense = sentence->expenseSentence;
@@ -212,7 +211,7 @@ static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * tab
 			if (!_checkLiteralDate(from) || !_checkLiteralDate(until)) {
 				return FAILED;
 			}
-			// si estan los dos extremos, hasta >= desde
+			// if both ends are present, until >= from
 			if (from != NULL && until != NULL && !_checkDateRange(from, until, "subscription period")) {
 				return FAILED;
 			}
@@ -251,7 +250,7 @@ static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * tab
 			break;
 		}
 		case SENTENCE_DELETE:
-			// la existencia del id se chequea en runtime contra la DB
+			// id existence is checked at runtime against the DB
 			if (!_checkWholeInteger(sentence->deleteSentence->number, "operation id")) {
 				return FAILED;
 			}
@@ -265,7 +264,7 @@ static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * tab
 			break;
 		}
 		case SENTENCE_FINALIZE:
-			// existencia del id y compatibilidad de tipo: chequeos de runtime (DB)
+			// id existence and type compatibility: runtime checks (DB)
 			if (!_checkWholeInteger(sentence->finalizeSentence->number, "operation id")) {
 				return FAILED;
 			}

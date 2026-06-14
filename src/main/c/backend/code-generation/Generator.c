@@ -27,28 +27,29 @@ ModuleDestructor initializeGeneratorModule() {
 	return _shutdownGeneratorModule;
 }
 
-// columnas de una operacion, compartidas por queries (consultar) y por la
-// proyeccion plana que comparten todas las sentencias INSERT/UPDATE.
+// Columns of an operation, shared by queries (consultar) and by the flat
+// projection that every INSERT/UPDATE sentence uses.
 #define OPERATION_COLUMNS "id, tipo, monto, divisa, categoria, fecha, descripcion, estado"
 
 /* PRIVATE FUNCTIONS */
 
-// Los montos viajan en centavos como long long; al SQL salen con dos decimales
-// para encajar en NUMERIC(15,2). Los ids/cuotas tambien viajan en centavos pero
-// el analisis semantico ya garantizo que su parte fraccionaria es 0, asi que
-// "centavos / 100" reconstruye el entero original sin perdida.
-static void _emitAmount(long long centavos) {
-	const long long whole = centavos / 100;
-	const long long cents = (centavos % 100 + 100) % 100;
-	emitSql("%lld.%02lld", whole, cents);
+// Amounts travel in cents as long long; in the SQL they are emitted with two
+// decimals to fit into NUMERIC(15,2). Ids/installments also travel in cents
+// but semantic analysis already guaranteed their fractional part is 0, so
+// "cents / 100" reconstructs the original integer without loss.
+static void _emitAmount(long long cents) {
+	const long long whole = cents / 100;
+	const long long fractional = (cents % 100 + 100) % 100;
+	emitSql("%lld.%02lld", whole, fractional);
 }
 
-static long long _wholeFromCentavos(long long centavos) {
-	return centavos / 100;
+static long long _wholeFromCents(long long cents) {
+	return cents / 100;
 }
 
-// escapa un string para meterlo en un literal SQL entre comillas simples
-// (cada ' se duplica). devuelve heap que libera el caller; no agrega comillas.
+// Escapes a string to embed it as a single-quoted SQL literal (each ' is
+// doubled). Returns heap-allocated memory the caller must free; does not add
+// the surrounding quotes.
 static char * _sqlEscape(const char * raw) {
 	size_t quotes = 0;
 	for (size_t i = 0; raw[i] != '\0'; ++i) {
@@ -69,7 +70,7 @@ static char * _sqlEscape(const char * raw) {
 	return escaped;
 }
 
-// normaliza la categoria (reusa la logica de la tabla de simbolos) y la escapa
+// Normalizes the category (reusing the symbol-table logic) and escapes it.
 static char * _categoryLiteral(const char * raw) {
 	char * normalized = normalizeCategory(raw);
 	char * escaped = _sqlEscape(normalized);
@@ -87,8 +88,9 @@ static DateValue _resolveDate(const Date * date) {
 	}
 }
 
-// fecha base de una operacion: la propia si la tiene, si no hoy. escribe el
-// ISO en "buffer" (>= 11 bytes) y devuelve el YYYYMMDD para seguir operando.
+// Base date of an operation: its own if present, otherwise today. Writes the
+// ISO format into "buffer" (>= 11 bytes) and returns the YYYYMMDD value so
+// callers can keep operating on it.
 static DateValue _baseDate(const Date * date, char * buffer) {
 	const DateValue value = (date != NULL) ? _resolveDate(date) : today();
 	formatDateValueIso(value, buffer);
@@ -97,9 +99,9 @@ static DateValue _baseDate(const Date * date, char * buffer) {
 
 /* DDL */
 
-// esquema relacional idempotente. operaciones es la tabla ancla (su id serial
-// es lo que editar/eliminar/finalizar tocan en runtime); cuotas y suscripciones
-// cuelgan de ella por FK.
+// Idempotent relational schema. "operaciones" is the anchor table (its serial
+// id is what editar/eliminar/finalizar touch at runtime); cuotas and
+// suscripciones hang off it via FK.
 static void _generatePrologue(void) {
 	emitSql("-- =====================================================================\n");
 	emitSql("-- Script SQL generado por el compilador del DSL de finanzas (PostgreSQL)\n");
@@ -154,7 +156,7 @@ static const char * _frequencyName(const Frequency * frequency) {
 	}
 }
 
-// categoria opcional como valor SQL: literal normalizado entre comillas o NULL
+// Optional category as SQL value: normalized quoted literal or NULL.
 static void _emitCategoryValue(const OptionalCategory * category) {
 	if (category == NULL) {
 		emitSql("NULL");
@@ -181,7 +183,7 @@ static void _generateExpense(const ExpenseSentence * expense, const char * curre
 	_baseDate(date, base);
 
 	if (expense->optionalInstallments == NULL) {
-		// gasto simple: una sola fila
+		// simple expense: a single row
 		emitSql("INSERT INTO operaciones (tipo, monto, divisa, categoria, fecha, descripcion)\n");
 		emitSql("VALUES ('gasto', ");
 		_emitAmount(expense->number);
@@ -193,9 +195,9 @@ static void _generateExpense(const ExpenseSentence * expense, const char * curre
 		return;
 	}
 
-	// gasto en cuotas: la operacion padre + N obligaciones futuras, una por mes
-	// desde la fecha base, todas con el id del padre (RETURNING).
-	const long long count = _wholeFromCentavos(expense->optionalInstallments->count);
+	// installment expense: the parent operation + N future obligations, one
+	// per month from the base date, all carrying the parent's id (RETURNING).
+	const long long count = _wholeFromCents(expense->optionalInstallments->count);
 	emitSql("WITH nueva AS (\n");
 	emitSql("    INSERT INTO operaciones (tipo, monto, divisa, categoria, fecha, descripcion)\n");
 	emitSql("    VALUES ('cuotas', ");
@@ -300,27 +302,27 @@ static void _generateEdit(const EditSentence * edit) {
 				break;
 		}
 	}
-	emitSql(" WHERE id = %lld;\n\n", _wholeFromCentavos(edit->number));
+	emitSql(" WHERE id = %lld;\n\n", _wholeFromCents(edit->number));
 }
 
 static void _generateDelete(const DeleteSentence * del) {
-	emitSql("DELETE FROM operaciones WHERE id = %lld;\n\n", _wholeFromCentavos(del->number));
+	emitSql("DELETE FROM operaciones WHERE id = %lld;\n\n", _wholeFromCents(del->number));
 }
 
 static void _generateFinalize(const FinalizeSentence * finalize) {
-	const long long id = _wholeFromCentavos(finalize->number);
-	// finalizar conserva el historial y solo corta lo futuro (relativo a
-	// CURRENT_DATE, que se resuelve al ejecutar). La restriccion de tipo va en
-	// el WHERE porque la existencia del id es un chequeo de runtime contra la DB.
+	const long long id = _wholeFromCents(finalize->number);
+	// "finalizar" preserves history and only cuts the future (relative to
+	// CURRENT_DATE, resolved at execution time). The type constraint goes in
+	// the WHERE because id existence is a runtime check against the DB.
 	emitSql("UPDATE operaciones SET estado = 'finalizado'\n");
 	emitSql("WHERE id = %lld AND tipo IN ('suscripcion', 'cuotas');\n", id);
 
-	// suscripcion: cierra la ventana de recurrencia hoy. inocuo si el id es cuotas.
+	// subscription: closes the recurrence window today. No-op if the id is for installments.
 	emitSql("UPDATE suscripciones SET hasta = CURRENT_DATE\n");
 	emitSql("WHERE operacion_id = %lld AND (hasta IS NULL OR hasta > CURRENT_DATE);\n", id);
 
-	// cuotas: cancela solo las futuras pendientes y deja las vencidas como
-	// historial (marca en vez de borrar). inocuo si el id es una suscripcion.
+	// installments: cancel only future pending ones and leave the matured
+	// ones as history (mark instead of deleting). No-op if the id is a subscription.
 	emitSql("UPDATE cuotas SET estado = 'cancelado'\n");
 	emitSql("WHERE operacion_id = %lld AND fecha > CURRENT_DATE AND estado = 'pendiente';\n\n", id);
 }
@@ -335,16 +337,16 @@ static void _generateQuery(const QuerySentence * query) {
 	emitSql("ORDER BY fecha, id;\n\n");
 }
 
-// Puntero a una funcion que emite un SELECT (sin ';' final) para un periodo.
-// Permite que _emitReportSavingBlock sea generico: el mismo bloque psql
-// auto-persiste PDFs, texto plano o HTML segun el emisor que recibe.
+// Pointer to a function that emits a SELECT (without the trailing ';') for a
+// period. It lets _emitReportSavingBlock be generic: the same psql block
+// auto-persists PDFs, plain text or HTML depending on the emitter it receives.
 typedef void (*ReportSelectEmitter)(const DatePeriod * period);
 
-// Imprime el bloque psql que captura el resultado de `emitSelect` a un archivo
-// 'reporte_<TIMESTAMP>.<extension>' en el CWD del cliente psql. Los meta-
-// comandos `\gset`, `\pset`, `\o`, `\echo` son del cliente (no SQL estandar):
-// otros clientes los van a rechazar, pero el script ya emitio antes el SELECT
-// "puro" con el contenido, asi que la informacion no se pierde.
+// Prints the psql block that captures the result of `emitSelect` into a file
+// 'reporte_<TIMESTAMP>.<extension>' in the psql client's CWD. The
+// meta-commands `\gset`, `\pset`, `\o`, `\echo` belong to the client (not
+// standard SQL): other clients will reject them, but the script already
+// emitted the "raw" SELECT before with the content, so no information is lost.
 static void _emitReportSavingBlock(
 	const char * extension,
 	const DatePeriod * period,
@@ -352,9 +354,9 @@ static void _emitReportSavingBlock(
 ) {
 	emitSql("-- Auto-persistencia con psql: si se ejecuta con 'psql -f', el reporte\n");
 	emitSql("--    se guarda en el CWD del cliente como\n");
-	emitSql("--    'reporte_DD-MM-YYYY_HHh.MMm.SSs.%s'. Otros clientes rechazaran\n", extension);
+	emitSql("--    'reporte_" DSL_DATE_DISPLAY_MASK "_HHh.MMm.SSs.%s'. Otros clientes rechazaran\n", extension);
 	emitSql("--    los meta-comandos pero ya recibieron el contenido en (1).\n");
-	emitSql("SELECT 'reporte_' || to_char(now(), 'DD-MM-YYYY\"_\"HH24\"h.\"MI\"m.\"SS\"s\"') || '.%s' AS fname \\gset\n", extension);
+	emitSql("SELECT 'reporte_' || to_char(now(), '" DSL_DATE_DISPLAY_MASK "\"_\"HH24\"h.\"MI\"m.\"SS\"s\"') || '.%s' AS fname \\gset\n", extension);
 	emitSql("\\pset format unaligned\n");
 	emitSql("\\pset tuples_only on\n");
 	emitSql("\\pset recordsep ''\n");
@@ -393,15 +395,15 @@ static void _generateReport(const ReportSentence * report) {
 			return;
 	}
 
-	// 1) SELECT puro: cualquier cliente recibe el contenido del reporte como
-	//    una fila/columna. El PDF se devuelve como text; el HTML como un
-	//    documento completo; el texto plano como una fila por operacion.
+	// 1) Raw SELECT: any client receives the report contents as a single
+	//    row/column. The PDF comes back as text; the HTML as a full document;
+	//    the plain text as one row per operation.
 	emitSql("-- 1) SELECT puro: devuelve el contenido del reporte (cualquier cliente).\n");
 	emitSelect(period);
 	emitSql(";\n\n");
 
-	// 2) Bloque de meta-comandos psql que copia el mismo SELECT a un archivo
-	//    con timestamp en el CWD del cliente.
+	// 2) Block of psql meta-commands that copies the same SELECT to a file
+	//    with timestamp in the client's CWD.
 	_emitReportSavingBlock(extension, period, emitSelect);
 }
 
@@ -443,10 +445,10 @@ void executeGenerator(CompilerState * compilerState) {
 	logDebugging(_logger, "Generating PostgreSQL script...");
 	Program * program = compilerState->abstractSyntaxTree;
 
-	// Divisa activa "en vivo" durante la generacion. La tabla de simbolos
-	// solo guarda la ULTIMA divisa declarada en el programa, asi que no
-	// sirve para sentencias intermedias. La default ('ARS') se aplica a
-	// cualquier operacion previa al primer 'divisa <ID>'.
+	// Active currency, tracked "live" during generation. The symbol table
+	// only stores the LAST currency declared in the program, so it is
+	// useless for intermediate sentences. The default ('ARS') applies to
+	// any operation prior to the first 'divisa <ID>'.
 	const char * activeCurrency = "ARS";
 
 	_generatePrologue();

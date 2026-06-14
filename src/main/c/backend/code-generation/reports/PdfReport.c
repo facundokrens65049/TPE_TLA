@@ -1,9 +1,10 @@
 #include "PdfReport.h"
 #include "ReportModel.h"
 #include "../../../support/io/EmitSql.h"
+#include "../../../support/language/DateUtils.h"
 
-// Arma un PDF 1.4 paginado (fuente Courier, hasta N filas por pagina) en SQL
-// puro. Devuelve una sola fila con el documento completo como text.
+// Builds a paginated PDF 1.4 (Courier font, up to N rows per page) in pure
+// SQL. Returns a single row with the full document as text.
 
 #define PDF_LINES_PER_PAGE 30
 
@@ -11,6 +12,14 @@ void emitPdfReportSelect(const DatePeriod * period) {
 	char fromBuffer[ISO_DATE_BUFFER_SIZE];
 	char toBuffer[ISO_DATE_BUFFER_SIZE];
 	resolvePeriodBounds(period, fromBuffer, toBuffer);
+
+	// SQL DATE literals require ISO "YYYY-MM-DD"; for display we use the DSL's
+	// "DD-MM-YYYY" so the report header matches the input format.
+	char fromDisplay[ISO_DATE_BUFFER_SIZE];
+	char toDisplay[ISO_DATE_BUFFER_SIZE];
+	formatIsoAsDmy(fromBuffer, fromDisplay);
+	formatIsoAsDmy(toBuffer, toDisplay);
+
 	emitSql("WITH\n");
 	emitReportHeaderCTE();
 	emitSql(",\n");
@@ -35,9 +44,9 @@ void emitPdfReportSelect(const DatePeriod * period) {
 	emitSql("           '(Balance del periodo) Tj T*' || chr(10) ||\n");
 	emitSql("           '(' || (SELECT separator_line FROM cabecera) || ') Tj T*' || chr(10) ||\n");
 	emitSql("           COALESCE((SELECT string_agg(\n");
-	emitSql("               '(' || rpad(divisa, %d) || ' ingresos: ' || lpad(to_char(ingresos, 'FM9999999990.00'), 15) || ') Tj T*' || chr(10) ||\n", COL_DIVISA_WIDTH);
-	emitSql("               '(' || rpad(divisa, %d) || ' egresos:  ' || lpad(to_char(egresos,  'FM9999999990.00'), 15) || ') Tj T*' || chr(10) ||\n", COL_DIVISA_WIDTH);
-	emitSql("               '(' || rpad(divisa, %d) || ' balance:  ' || lpad(to_char(neto,     'FM9999999990.00'), 15) || ') Tj T*',\n", COL_DIVISA_WIDTH);
+	emitSql("               '(' || rpad(divisa, %d) || ' ingresos: ' || lpad(to_char(ingresos, 'FM9999999990.00'), 15) || ') Tj T*' || chr(10) ||\n", COL_CURRENCY_WIDTH);
+	emitSql("               '(' || rpad(divisa, %d) || ' egresos:  ' || lpad(to_char(egresos,  'FM9999999990.00'), 15) || ') Tj T*' || chr(10) ||\n", COL_CURRENCY_WIDTH);
+	emitSql("               '(' || rpad(divisa, %d) || ' balance:  ' || lpad(to_char(neto,     'FM9999999990.00'), 15) || ') Tj T*',\n", COL_CURRENCY_WIDTH);
 	emitSql("               chr(10) ORDER BY divisa) FROM balance),\n");
 	emitSql("               '(Sin movimientos en el periodo.) Tj T*') AS bal\n");
 	emitSql("),\n");
@@ -51,7 +60,7 @@ void emitPdfReportSelect(const DatePeriod * period) {
 	emitSql("paginas_data AS (\n");
 	emitSql("    SELECT pagina,\n");
 	emitSql("           'BT /F1 14 Tf 30 565 Td (Reporte de operaciones - pagina ' || pagina::text || ') Tj ET' || chr(10) ||\n");
-	emitSql("           'BT /F1 10 Tf 30 545 Td (Periodo: %s a %s) Tj ET' || chr(10) ||\n", fromBuffer, toBuffer);
+	emitSql("           'BT /F1 10 Tf 30 545 Td (Periodo: %s a %s) Tj ET' || chr(10) ||\n", fromDisplay, toDisplay);
 	emitSql("           'BT /F2 9 Tf 30 520 Td 11 TL' || chr(10) ||\n");
 	emitSql("           '(' || (SELECT header_line FROM cabecera) || ') Tj T*' || chr(10) ||\n");
 	emitSql("           '(' || (SELECT separator_line FROM cabecera) || ') Tj T*' || chr(10) ||\n");
@@ -70,7 +79,7 @@ void emitPdfReportSelect(const DatePeriod * period) {
 	emitSql("    UNION ALL\n");
 	emitSql("    SELECT 1 AS pagina,\n");
 	emitSql("           'BT /F1 14 Tf 30 565 Td (Reporte de operaciones) Tj ET' || chr(10) ||\n");
-	emitSql("           'BT /F1 10 Tf 30 545 Td (Periodo: %s a %s) Tj ET' || chr(10) ||\n", fromBuffer, toBuffer);
+	emitSql("           'BT /F1 10 Tf 30 545 Td (Periodo: %s a %s) Tj ET' || chr(10) ||\n", fromDisplay, toDisplay);
 	emitSql("           'BT /F2 9 Tf 30 520 Td 11 TL' || chr(10) ||\n");
 	emitSql("           '(Sin operaciones en el periodo.) Tj T*' || chr(10) ||\n");
 	emitSql("           (SELECT bal FROM balance_pdf_block) || chr(10) ||\n");

@@ -2,8 +2,8 @@
 #include "../../../support/io/EmitSql.h"
 #include "../../../support/language/DateUtils.h"
 
-// Resuelve un nodo Date del AST a un DateValue concreto (literal o palabra
-// reservada como 'hoy'/'ayer'/'manana').
+// Resolves an AST Date node to a concrete DateValue (literal or reserved
+// word such as 'hoy'/'ayer'/'manana').
 static DateValue _resolveDate(const Date * date) {
 	switch (date->kind) {
 		case DATE_KIND_LITERAL:   return parseLiteralDate(date->literal);
@@ -36,16 +36,16 @@ void emitReportHeaderCTE(void) {
 	emitSql("cabecera AS (\n");
 	emitSql("    SELECT\n");
 	emitSql("        rpad('id', %d) || ' ' || rpad('tipo', %d) || ' ' || lpad('monto', %d) || ' ' ||\n",
-		COL_ID_WIDTH, COL_TIPO_WIDTH, COL_MONTO_WIDTH);
+		COL_ID_WIDTH, COL_TYPE_WIDTH, COL_AMOUNT_WIDTH);
 	emitSql("        rpad('divisa', %d) || ' ' || rpad('categoria', %d) || ' ' || rpad('fecha', %d) || ' ' ||\n",
-		COL_DIVISA_WIDTH, COL_CATEGORIA_WIDTH, COL_FECHA_WIDTH);
-	emitSql("        rpad('detalle', %d) || ' ' || 'descripcion' AS header_line,\n", COL_DETALLE_WIDTH);
+		COL_CURRENCY_WIDTH, COL_CATEGORY_WIDTH, COL_DATE_WIDTH);
+	emitSql("        rpad('detalle', %d) || ' ' || 'descripcion' AS header_line,\n", COL_DETAIL_WIDTH);
 	emitSql("        repeat('-', %d) || ' ' || repeat('-', %d) || ' ' || repeat('-', %d) || ' ' ||\n",
-		COL_ID_WIDTH, COL_TIPO_WIDTH, COL_MONTO_WIDTH);
+		COL_ID_WIDTH, COL_TYPE_WIDTH, COL_AMOUNT_WIDTH);
 	emitSql("        repeat('-', %d) || ' ' || repeat('-', %d) || ' ' || repeat('-', %d) || ' ' ||\n",
-		COL_DIVISA_WIDTH, COL_CATEGORIA_WIDTH, COL_FECHA_WIDTH);
+		COL_CURRENCY_WIDTH, COL_CATEGORY_WIDTH, COL_DATE_WIDTH);
 	emitSql("        repeat('-', %d) || ' ' || repeat('-', %d) AS separator_line\n",
-		COL_DETALLE_WIDTH, COL_DESCRIPCION_WIDTH);
+		COL_DETAIL_WIDTH, COL_DESCRIPTION_WIDTH);
 	emitSql(")");
 }
 
@@ -77,8 +77,8 @@ void emitReportRowsCTE(const char * fromBuffer, const char * toBuffer, bool pdfE
 	emitSql("    -- Lineas necesarias para envolver categoria/descripcion sin cortar.\n");
 	emitSql("    SELECT *,\n");
 	emitSql("           GREATEST(\n");
-	emitSql("               CEIL(GREATEST(length(COALESCE(categoria, '')), 1)::numeric / %d)::int,\n", COL_CATEGORIA_WIDTH);
-	emitSql("               CEIL(GREATEST(length(COALESCE(descripcion, '')), 1)::numeric / %d)::int,\n", COL_DESCRIPCION_WIDTH);
+	emitSql("               CEIL(GREATEST(length(COALESCE(categoria, '')), 1)::numeric / %d)::int,\n", COL_CATEGORY_WIDTH);
+	emitSql("               CEIL(GREATEST(length(COALESCE(descripcion, '')), 1)::numeric / %d)::int,\n", COL_DESCRIPTION_WIDTH);
 	emitSql("               1\n");
 	emitSql("           ) AS line_count\n");
 	emitSql("    FROM filas_base\n");
@@ -93,13 +93,13 @@ void emitReportRowsCTE(const char * fromBuffer, const char * toBuffer, bool pdfE
 	emitSql("    -- y descripcion van wrap-eadas en ventanas de su ancho.\n");
 	emitSql("    SELECT\n");
 	emitSql("        CASE WHEN j = 0 THEN rpad(id::text, %d)         ELSE rpad('', %d) END || ' ' ||\n", COL_ID_WIDTH, COL_ID_WIDTH);
-	emitSql("        CASE WHEN j = 0 THEN rpad(left(tipo, %d), %d)    ELSE rpad('', %d) END || ' ' ||\n", COL_TIPO_WIDTH, COL_TIPO_WIDTH, COL_TIPO_WIDTH);
-	emitSql("        CASE WHEN j = 0 THEN lpad(monto::text, %d)      ELSE rpad('', %d) END || ' ' ||\n", COL_MONTO_WIDTH, COL_MONTO_WIDTH);
-	emitSql("        CASE WHEN j = 0 THEN rpad(left(divisa, %d), %d) ELSE rpad('', %d) END || ' ' ||\n", COL_DIVISA_WIDTH, COL_DIVISA_WIDTH, COL_DIVISA_WIDTH);
-	emitSql("        rpad(COALESCE(substring(COALESCE(categoria, '') FROM j * %d + 1 FOR %d), ''), %d) || ' ' ||\n", COL_CATEGORIA_WIDTH, COL_CATEGORIA_WIDTH, COL_CATEGORIA_WIDTH);
-	emitSql("        CASE WHEN j = 0 THEN rpad(fecha::text, %d)      ELSE rpad('', %d) END || ' ' ||\n", COL_FECHA_WIDTH, COL_FECHA_WIDTH);
-	emitSql("        CASE WHEN j = 0 THEN rpad(left(COALESCE(detalle, ''), %d), %d) ELSE rpad('', %d) END || ' ' ||\n", COL_DETALLE_WIDTH, COL_DETALLE_WIDTH, COL_DETALLE_WIDTH);
-	emitSql("        rpad(COALESCE(substring(COALESCE(descripcion, '') FROM j * %d + 1 FOR %d), ''), %d) AS linea_raw,\n", COL_DESCRIPCION_WIDTH, COL_DESCRIPCION_WIDTH, COL_DESCRIPCION_WIDTH);
+	emitSql("        CASE WHEN j = 0 THEN rpad(left(tipo, %d), %d)    ELSE rpad('', %d) END || ' ' ||\n", COL_TYPE_WIDTH, COL_TYPE_WIDTH, COL_TYPE_WIDTH);
+	emitSql("        CASE WHEN j = 0 THEN lpad(monto::text, %d)      ELSE rpad('', %d) END || ' ' ||\n", COL_AMOUNT_WIDTH, COL_AMOUNT_WIDTH);
+	emitSql("        CASE WHEN j = 0 THEN rpad(left(divisa, %d), %d) ELSE rpad('', %d) END || ' ' ||\n", COL_CURRENCY_WIDTH, COL_CURRENCY_WIDTH, COL_CURRENCY_WIDTH);
+	emitSql("        rpad(COALESCE(substring(COALESCE(categoria, '') FROM j * %d + 1 FOR %d), ''), %d) || ' ' ||\n", COL_CATEGORY_WIDTH, COL_CATEGORY_WIDTH, COL_CATEGORY_WIDTH);
+	emitSql("        CASE WHEN j = 0 THEN rpad(to_char(fecha, '" DSL_DATE_DISPLAY_MASK "'), %d)      ELSE rpad('', %d) END || ' ' ||\n", COL_DATE_WIDTH, COL_DATE_WIDTH);
+	emitSql("        CASE WHEN j = 0 THEN rpad(left(COALESCE(detalle, ''), %d), %d) ELSE rpad('', %d) END || ' ' ||\n", COL_DETAIL_WIDTH, COL_DETAIL_WIDTH, COL_DETAIL_WIDTH);
+	emitSql("        rpad(COALESCE(substring(COALESCE(descripcion, '') FROM j * %d + 1 FOR %d), ''), %d) AS linea_raw,\n", COL_DESCRIPTION_WIDTH, COL_DESCRIPTION_WIDTH, COL_DESCRIPTION_WIDTH);
 	emitSql("        fecha, id, j\n");
 	emitSql("    FROM filas_expandidas\n");
 	emitSql(")");

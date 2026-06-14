@@ -24,6 +24,16 @@ typedef int DateValue;
  */
 #define ISO_DATE_BUFFER_SIZE 11
 
+/**
+ * SQL `to_char` mask used to render dates in the DSL's display format
+ * (DD-MM-YYYY). This is the single source of truth shared by every report
+ * column that surfaces a date to a human, so the output stays in sync with
+ * the literal-date format the DSL accepts as input. Defined as a string
+ * literal so call sites can embed it via compile-time concatenation, e.g.
+ * `to_char(fecha, '` DSL_DATE_DISPLAY_MASK `')`.
+ */
+#define DSL_DATE_DISPLAY_MASK "DD-MM-YYYY"
+
 /** Returns true if the given year is a leap year in the Gregorian calendar. */
 bool isLeapYear(const int year);
 
@@ -62,6 +72,15 @@ DateValue tomorrow(void);
  * Used by code generation to emit concrete dates into the SQL script.
  */
 void formatDateValueIso(const DateValue date, char * buffer);
+
+/**
+ * Converts an ISO "YYYY-MM-DD" date literal into the DSL's display format
+ * "DD-MM-YYYY", writing into the caller-provided buffer (which must hold at
+ * least ISO_DATE_BUFFER_SIZE bytes; both formats are 10 chars + '\0'). The
+ * input is expected to come from formatDateValueIso, so its layout is
+ * trusted: this only reorders the components, it does not validate them.
+ */
+void formatIsoAsDmy(const char * iso, char * dmy);
 
 /**
  * Returns the given YYYYMMDD date shifted by "months" (negative shifts back).

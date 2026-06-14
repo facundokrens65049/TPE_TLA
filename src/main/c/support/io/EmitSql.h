@@ -1,11 +1,11 @@
 #ifndef EMIT_SQL_HEADER
 #define EMIT_SQL_HEADER
 
-// Punto unico de escritura del backend hacia stdout.
+// Single write point from the backend to stdout.
 void emitSql(const char * format, ...);
 
-// Fuerza el volcado del buffer de stdout. emitSql ya no hace flush por llamada;
-// se invoca una vez al terminar de generar el script.
+// Forces the stdout buffer to flush. emitSql no longer flushes per call; this
+// is invoked once when the script generation finishes.
 void flushSql(void);
 
 #endif

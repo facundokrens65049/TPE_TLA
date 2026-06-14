@@ -3,12 +3,11 @@
 
 #include "../../../frontend/syntactic-analysis/AbstractSyntaxTree.h"
 
-// Emite un SELECT (sin ';\n' final) que devuelve UNA SOLA fila con un
-// documento HTML5 completo: DOCTYPE + <head> con CSS inline + <body> con dos
-// <table> (datos del periodo y balance neto por divisa). El navegador se
-// encarga del wrap natural de las celdas, asi que no es necesaria la
-// expansion multi-linea de filas. El balance negativo se pinta rojo y el
-// positivo verde via clases CSS.
+// Emits a SELECT (without trailing ';\n') that returns a SINGLE row holding
+// a complete HTML5 document: DOCTYPE + <head> with inline CSS + <body> with
+// two <table>s (period data and net balance by currency). The browser
+// handles the natural wrapping of cells, so multi-line row expansion is not
+// needed. Negative balance is painted red and positive green via CSS classes.
 void emitHtmlReportSelect(const DatePeriod * period);
 
 #endif

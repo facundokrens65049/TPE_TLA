@@ -6,26 +6,26 @@
 #include <stdbool.h>
 
 #define COL_ID_WIDTH 5
-#define COL_TIPO_WIDTH 14
-#define COL_MONTO_WIDTH 13
-#define COL_DIVISA_WIDTH 7
-#define COL_CATEGORIA_WIDTH 18
-#define COL_FECHA_WIDTH 10
-#define COL_DETALLE_WIDTH 8
-#define COL_DESCRIPCION_WIDTH 50
+#define COL_TYPE_WIDTH 14
+#define COL_AMOUNT_WIDTH 13
+#define COL_CURRENCY_WIDTH 7
+#define COL_CATEGORY_WIDTH 18
+#define COL_DATE_WIDTH 10
+#define COL_DETAIL_WIDTH 8
+#define COL_DESCRIPTION_WIDTH 50
 
-// Extremos del periodo en ISO (YYYY-MM-DD, 10 chars + '\0', asi que los
-// buffers deben tener al menos 11 bytes). Un rango usa los extremos ya
-// validados; una frecuencia es una ventana que cierra hoy y va un periodo
-// para atras (mensual = -1 mes, semanal = -7 dias, anual = -12 meses).
+// Period bounds in ISO format (YYYY-MM-DD, 10 chars + '\0', so the buffers
+// must hold at least 11 bytes). A range uses the already-validated bounds;
+// a frequency is a window that closes today and goes one period backwards
+// (monthly = -1 month, weekly = -7 days, yearly = -12 months).
 void resolvePeriodBounds(const DatePeriod * period, char * fromBuffer, char * toBuffer);
 
-// Emite el CTE 'cabecera' (compartido por los reportes texto plano y PDF, no
-// por el HTML que usa <th>).
+// Emits the 'cabecera' CTE (shared by the plain-text and PDF reports, not by
+// the HTML one which uses <th>).
 void emitReportHeaderCTE(void);
 
-// Emite el subgrafo de CTEs compartido por los reportes (modelo de filas +
-// wrap multi-linea + balance).
+// Emits the CTE subgraph shared by the reports (row model + multi-line wrap
+// + balance).
 void emitReportRowsCTE(const char * fromBuffer, const char * toBuffer, bool pdfEscape);
 
 #endif

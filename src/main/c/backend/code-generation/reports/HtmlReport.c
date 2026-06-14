@@ -1,13 +1,14 @@
 #include "HtmlReport.h"
 #include "ReportModel.h"
 #include "../../../support/io/EmitSql.h"
+#include "../../../support/language/DateUtils.h"
 
-// Emite la expresion SQL que escapa los caracteres reservados de HTML sobre
-// "expr" (el '&' primero, para no re-escapar las entidades que generan los
-// otros replace). El contenido viene de la base (categoria, descripcion,
-// divisa, etc.) y se inserta crudo en el documento, asi que un '<', '>' o '&'
-// romperia el HTML o permitiria inyeccion. El PDF ya hacia su propio escape;
-// esto le da al HTML el equivalente.
+// Emits the SQL expression that escapes HTML reserved characters on "expr"
+// ('&' first, so we don't re-escape the entities the other replaces produce).
+// The content comes from the database (category, description, currency,
+// etc.) and is inserted raw into the document, so a '<', '>' or '&' would
+// break the HTML or allow injection. The PDF already did its own escape;
+// this gives the HTML the equivalent.
 static void _emitHtmlEscaped(const char * expr) {
 	emitSql("replace(replace(replace(%s, '&', '&amp;'), '<', '&lt;'), '>', '&gt;')", expr);
 }
@@ -16,6 +17,13 @@ void emitHtmlReportSelect(const DatePeriod * period) {
 	char fromBuffer[ISO_DATE_BUFFER_SIZE];
 	char toBuffer[ISO_DATE_BUFFER_SIZE];
 	resolvePeriodBounds(period, fromBuffer, toBuffer);
+
+	// SQL DATE literals require ISO "YYYY-MM-DD"; for display we use the DSL's
+	// "DD-MM-YYYY" so the report header matches the input format.
+	char fromDisplay[ISO_DATE_BUFFER_SIZE];
+	char toDisplay[ISO_DATE_BUFFER_SIZE];
+	formatIsoAsDmy(fromBuffer, fromDisplay);
+	formatIsoAsDmy(toBuffer, toDisplay);
 
 	emitSql("WITH\n");
 	emitReportRowsCTE(fromBuffer, toBuffer, false);
@@ -36,7 +44,7 @@ void emitHtmlReportSelect(const DatePeriod * period) {
 	emitSql("    || 'td.neg{color:#b00020}td.pos{color:#0a7a2a}'\n");
 	emitSql("    || '</style></head><body>'\n");
 	emitSql("    || '<h1>Reporte de operaciones</h1>'\n");
-	emitSql("    || '<p>Periodo: %s a %s</p>'\n", fromBuffer, toBuffer);
+	emitSql("    || '<p>Periodo: %s a %s</p>'\n", fromDisplay, toDisplay);
 	emitSql("    || '<table>'\n");
 	emitSql("    || '<thead><tr>'\n");
 	emitSql("    || '<th>id</th><th>tipo</th><th>monto</th><th>divisa</th>'\n");
@@ -55,7 +63,7 @@ void emitHtmlReportSelect(const DatePeriod * period) {
 	emitSql("        || '<td>' || COALESCE(");
 	_emitHtmlEscaped("categoria");
 	emitSql(", '') || '</td>'\n");
-	emitSql("        || '<td>' || fecha::text || '</td>'\n");
+	emitSql("        || '<td>' || to_char(fecha, '" DSL_DATE_DISPLAY_MASK "') || '</td>'\n");
 	emitSql("        || '<td class=\"det\">' || COALESCE(");
 	_emitHtmlEscaped("detalle");
 	emitSql(", '') || '</td>'\n");

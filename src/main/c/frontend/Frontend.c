@@ -48,9 +48,9 @@ static const char * _compilationStatusAsString(const CompilationStatus compilati
 /* PUBLIC FUNCTIONS */
 
 InputBuffer * createInputBuffer(LexicalAnalyzer * lexicalAnalyzer, const char * path) {
-	// Abrimos primero: si el archivo no existe no tiene sentido reservar el
-	// wrapper ni armar el buffer de Flex con un FILE * NULL. El caller debe
-	// contemplar el retorno NULL.
+	// Open first: if the file does not exist there is no point in allocating
+	// the wrapper nor building the Flex buffer with a NULL FILE *. The caller
+	// must handle a NULL return.
 	FILE * file = fopen(path, "r");
 	if (file == NULL) {
 		logError(_logger, "Cannot open input file: \"%s\".", path);
@@ -92,14 +92,14 @@ FlexContext currentLexicalAnalyzerContext(LexicalAnalyzer * lexicalAnalyzer) {
 
 void destroyInputBuffer(InputBuffer * inputBuffer) {
 	if (inputBuffer != NULL) {
-		// El buffer de Flex (creado con yy_create_buffer y empujado con
-		// yypush_buffer_state) pertenece a la PILA de Flex, no a este wrapper,
-		// asi que NO se borra aca. Ambos caminos lo liberan exactamente una vez:
-		//   - EOF normal: popInputBuffer -> yypop_buffer_state ya lo borro.
-		//   - error de sintaxis (sin llegar al EOF): queda en la pila y lo borra
-		//     yylex_destroy() (en destroyLexicalAnalyzer), que drena la pila
-		//     entera. Verificado en FlexScanner.c (Flex 2.6.4).
-		// Llamar yy_delete_buffer aca seria un double-free en el primer caso.
+		// The Flex buffer (created with yy_create_buffer and pushed with
+		// yypush_buffer_state) belongs to the Flex STACK, not to this wrapper,
+		// so it is NOT deleted here. Both paths free it exactly once:
+		//   - normal EOF: popInputBuffer -> yypop_buffer_state already deleted it.
+		//   - syntax error (without reaching EOF): it stays on the stack and is
+		//     deleted by yylex_destroy() (inside destroyLexicalAnalyzer), which
+		//     drains the entire stack. Verified in FlexScanner.c (Flex 2.6.4).
+		// Calling yy_delete_buffer here would be a double-free in the first case.
 		inputBuffer->buffer = NULL;
 		if (inputBuffer->file != NULL) {
 			fclose(inputBuffer->file);

@@ -11,8 +11,9 @@ static DateValue _toDateValue(const struct tm * time) {
 		+ time->tm_mday;
 }
 
-// fecha relativa a hoy, corrida "dayOffset" dias. mktime normaliza los bordes
-// de mes/anio, asi que -1/+1 quedan bien (ej. el dia antes del 1ro).
+// Date relative to today, shifted by "dayOffset" days. mktime normalizes
+// month/year boundaries, so -1/+1 work correctly (e.g. the day before the
+// 1st).
 static DateValue _relativeDate(const int dayOffset) {
 	const time_t now = time(NULL);
 	struct tm local;
@@ -57,7 +58,7 @@ DateValue parseLiteralDate(const char * literal) {
 	int month = 0;
 	int year = 0;
 	char trailing = '\0';
-	// el "%c" final detecta caracteres de sobra mas alla de "DD-MM-YYYY"
+	// the trailing "%c" detects extra characters beyond "DD-MM-YYYY"
 	const int matched = sscanf(literal, "%2d-%2d-%4d%c", &day, &month, &year, &trailing);
 	if (matched != 3) {
 		return INVALID_DATE_VALUE;
@@ -81,11 +82,12 @@ DateValue tomorrow(void) {
 }
 
 void formatDateValueIso(const DateValue date, char * buffer) {
-	// Trabajamos en unsigned y acotamos cada componente a su rango: year a 4
-	// digitos (0-9999), month y day a 2 (0-99). Asi la salida es siempre
-	// exactamente "YYYY-MM-DD" (10 chars + '\0' = ISO_DATE_BUFFER_SIZE) y GCC
-	// puede probar que no hay truncamiento (-Wformat-truncation). Un date
-	// invalido/negativo degrada a "0000-00-00" en vez de desbordar el buffer.
+	// Work in unsigned and clamp every component to its range: year to 4
+	// digits (0-9999), month and day to 2 (0-99). That way the output is
+	// always exactly "YYYY-MM-DD" (10 chars + '\0' = ISO_DATE_BUFFER_SIZE)
+	// and GCC can prove there is no truncation (-Wformat-truncation). An
+	// invalid/negative date degrades to "0000-00-00" instead of overflowing
+	// the buffer.
 	const unsigned int safe = (date < 0) ? 0u : (unsigned int) date;
 	const unsigned int year = (safe / 10000u) % 10000u;
 	const unsigned int month = (safe / 100u) % 100u;
@@ -93,11 +95,25 @@ void formatDateValueIso(const DateValue date, char * buffer) {
 	snprintf(buffer, ISO_DATE_BUFFER_SIZE, "%04u-%02u-%02u", year, month, day);
 }
 
+void formatIsoAsDmy(const char * iso, char * dmy) {
+	dmy[0] = iso[8];
+	dmy[1] = iso[9];
+	dmy[2] = '-';
+	dmy[3] = iso[5];
+	dmy[4] = iso[6];
+	dmy[5] = '-';
+	dmy[6] = iso[0];
+	dmy[7] = iso[1];
+	dmy[8] = iso[2];
+	dmy[9] = iso[3];
+	dmy[10] = '\0';
+}
+
 DateValue addMonths(const DateValue date, const int months) {
 	const int year = date / 10000;
 	const int month = (date / 100) % 100;
 	int day = date % 100;
-	// indice de mes base 0 para que los corrimientos negativos dividan bien
+	// 0-based month index so negative shifts divide cleanly
 	int total = (year * 12 + (month - 1)) + months;
 	int newYear = total / 12;
 	int newMonth = total % 12;

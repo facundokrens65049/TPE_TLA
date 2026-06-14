@@ -3,11 +3,11 @@
 
 #include "../../../frontend/syntactic-analysis/AbstractSyntaxTree.h"
 
-// Emite un SELECT (sin ';\n' final) que devuelve UNA SOLA fila con el reporte
-// formateado como tabla ASCII de ancho fijo: cabecera + separador + filas con
-// wrap multi-linea (categoria y descripcion no se truncan, se reparten en
-// lineas debajo) + balance neto por divisa al pie. Comparte el modelo de
-// filas y la cabecera con el PDF (mismas COL_*_WIDTH).
+// Emits a SELECT (without trailing ';\n') that returns a SINGLE row with
+// the report formatted as a fixed-width ASCII table: header + separator +
+// rows with multi-line wrap (category and description are not truncated,
+// they are split into lines below) + net balance per currency at the foot.
+// Shares the row model and the header with the PDF (same COL_*_WIDTH).
 void emitTextReportSelect(const DatePeriod * period);
 
 #endif
