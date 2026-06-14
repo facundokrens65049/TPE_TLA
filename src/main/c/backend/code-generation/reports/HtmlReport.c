@@ -2,9 +2,19 @@
 #include "ReportModel.h"
 #include "../../../support/io/EmitSql.h"
 
+// Emite la expresion SQL que escapa los caracteres reservados de HTML sobre
+// "expr" (el '&' primero, para no re-escapar las entidades que generan los
+// otros replace). El contenido viene de la base (categoria, descripcion,
+// divisa, etc.) y se inserta crudo en el documento, asi que un '<', '>' o '&'
+// romperia el HTML o permitiria inyeccion. El PDF ya hacia su propio escape;
+// esto le da al HTML el equivalente.
+static void _emitHtmlEscaped(const char * expr) {
+	emitSql("replace(replace(replace(%s, '&', '&amp;'), '<', '&lt;'), '>', '&gt;')", expr);
+}
+
 void emitHtmlReportSelect(const DatePeriod * period) {
-	char fromBuffer[11];
-	char toBuffer[11];
+	char fromBuffer[ISO_DATE_BUFFER_SIZE];
+	char toBuffer[ISO_DATE_BUFFER_SIZE];
 	resolvePeriodBounds(period, fromBuffer, toBuffer);
 
 	emitSql("WITH\n");
@@ -35,13 +45,23 @@ void emitHtmlReportSelect(const DatePeriod * period) {
 	emitSql("    || COALESCE((SELECT string_agg(\n");
 	emitSql("        '<tr>'\n");
 	emitSql("        || '<td class=\"num\">' || id::text || '</td>'\n");
-	emitSql("        || '<td>' || tipo || '</td>'\n");
+	emitSql("        || '<td>' || ");
+	_emitHtmlEscaped("tipo");
+	emitSql(" || '</td>'\n");
 	emitSql("        || '<td class=\"num\">' || monto::text || '</td>'\n");
-	emitSql("        || '<td>' || divisa || '</td>'\n");
-	emitSql("        || '<td>' || COALESCE(categoria, '') || '</td>'\n");
+	emitSql("        || '<td>' || ");
+	_emitHtmlEscaped("divisa");
+	emitSql(" || '</td>'\n");
+	emitSql("        || '<td>' || COALESCE(");
+	_emitHtmlEscaped("categoria");
+	emitSql(", '') || '</td>'\n");
 	emitSql("        || '<td>' || fecha::text || '</td>'\n");
-	emitSql("        || '<td class=\"det\">' || COALESCE(detalle, '') || '</td>'\n");
-	emitSql("        || '<td>' || COALESCE(descripcion, '') || '</td>'\n");
+	emitSql("        || '<td class=\"det\">' || COALESCE(");
+	_emitHtmlEscaped("detalle");
+	emitSql(", '') || '</td>'\n");
+	emitSql("        || '<td>' || COALESCE(");
+	_emitHtmlEscaped("descripcion");
+	emitSql(", '') || '</td>'\n");
 	emitSql("        || '</tr>', '' ORDER BY fecha, id) FROM filas_base),\n");
 	emitSql("        '<tr><td colspan=\"8\" style=\"text-align:center;color:#888\">Sin operaciones en el periodo.</td></tr>'\n");
 	emitSql("    )\n");
@@ -52,7 +72,9 @@ void emitHtmlReportSelect(const DatePeriod * period) {
 	emitSql("        || '</tr></thead><tbody>'\n");
 	emitSql("        || string_agg(\n");
 	emitSql("            '<tr class=\"neto\">'\n");
-	emitSql("            || '<td>' || divisa || '</td>'\n");
+	emitSql("            || '<td>' || ");
+	_emitHtmlEscaped("divisa");
+	emitSql(" || '</td>'\n");
 	emitSql("            || '<td class=\"num pos\">' || to_char(ingresos, 'FM9999999990.00') || '</td>'\n");
 	emitSql("            || '<td class=\"num neg\">' || to_char(egresos,  'FM9999999990.00') || '</td>'\n");
 	emitSql("            || '<td class=\"num ' || CASE WHEN neto >= 0 THEN 'pos' ELSE 'neg' END || '\">'\n");

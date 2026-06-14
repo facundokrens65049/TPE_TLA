@@ -3,8 +3,8 @@
 #include "../../../support/io/EmitSql.h"
 
 void emitTextReportSelect(const DatePeriod * period) {
-	char fromBuffer[11];
-	char toBuffer[11];
+	char fromBuffer[ISO_DATE_BUFFER_SIZE];
+	char toBuffer[ISO_DATE_BUFFER_SIZE];
 	resolvePeriodBounds(period, fromBuffer, toBuffer);
 
 	emitSql("WITH\n");

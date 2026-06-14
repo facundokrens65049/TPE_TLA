@@ -176,7 +176,7 @@ static void _emitDescriptionValue(const OptionalDescription * description) {
 }
 
 static void _generateExpense(const ExpenseSentence * expense, const char * currency) {
-	char base[11];
+	char base[ISO_DATE_BUFFER_SIZE];
 	const Date * date = (expense->optionalDate != NULL) ? expense->optionalDate->date : NULL;
 	_baseDate(date, base);
 
@@ -216,7 +216,7 @@ static void _generateExpense(const ExpenseSentence * expense, const char * curre
 }
 
 static void _generateIncome(const IncomeSentence * income, const char * currency) {
-	char base[11];
+	char base[ISO_DATE_BUFFER_SIZE];
 	const Date * date = (income->optionalDate != NULL) ? income->optionalDate->date : NULL;
 	_baseDate(date, base);
 
@@ -231,7 +231,7 @@ static void _generateIncome(const IncomeSentence * income, const char * currency
 }
 
 static void _generateSubscription(const SubscriptionSentence * subscription, const char * currency) {
-	char fromBuffer[11];
+	char fromBuffer[ISO_DATE_BUFFER_SIZE];
 	const Date * fromDate = (subscription->optionalFrom != NULL) ? subscription->optionalFrom->date : NULL;
 	_baseDate(fromDate, fromBuffer);
 
@@ -253,7 +253,7 @@ static void _generateSubscription(const SubscriptionSentence * subscription, con
 	_emitCategoryValue(subscription->optionalCategory);
 	emitSql(", '%s', DATE '%s', ", _frequencyName(subscription->frequency), fromBuffer);
 	if (subscription->optionalUntil != NULL) {
-		char untilBuffer[11];
+		char untilBuffer[ISO_DATE_BUFFER_SIZE];
 		formatDateValueIso(_resolveDate(subscription->optionalUntil->date), untilBuffer);
 		emitSql("DATE '%s', ", untilBuffer);
 	}
@@ -285,7 +285,7 @@ static void _generateEdit(const EditSentence * edit) {
 				break;
 			}
 			case EDIT_FIELD_DATE: {
-				char buffer[11];
+				char buffer[ISO_DATE_BUFFER_SIZE];
 				formatDateValueIso(_resolveDate(field->date), buffer);
 				emitSql("fecha = DATE '%s'", buffer);
 				break;
@@ -326,8 +326,8 @@ static void _generateFinalize(const FinalizeSentence * finalize) {
 }
 
 static void _generateQuery(const QuerySentence * query) {
-	char fromBuffer[11];
-	char toBuffer[11];
+	char fromBuffer[ISO_DATE_BUFFER_SIZE];
+	char toBuffer[ISO_DATE_BUFFER_SIZE];
 	resolvePeriodBounds(query->period, fromBuffer, toBuffer);
 	emitSql("SELECT " OPERATION_COLUMNS "\n");
 	emitSql("FROM operaciones\n");
@@ -462,5 +462,6 @@ void executeGenerator(CompilerState * compilerState) {
 		}
 	}
 
+	flushSql();
 	logDebugging(_logger, "Generation is done.");
 }

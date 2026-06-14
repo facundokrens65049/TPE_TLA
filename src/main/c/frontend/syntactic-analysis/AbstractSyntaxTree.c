@@ -59,10 +59,12 @@ void destroyEditField(EditField * field) {
 
 void destroyEditFieldList(EditFieldList * list) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (list != NULL) {
+	// Iterativo en vez de recursivo: una lista larga no debe consumir stack.
+	while (list != NULL) {
+		EditFieldList * next = list->next;
 		destroyEditField(list->field);
-		destroyEditFieldList(list->next);
 		free(list);
+		list = next;
 	}
 }
 
@@ -254,10 +256,13 @@ void destroySentence(Sentence * sentence) {
 
 void destroySentences(Sentences * sentences) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (sentences != NULL) {
+	// Iterativo en vez de recursivo: un programa con muchas sentencias no debe
+	// consumir un marco de stack por cada una.
+	while (sentences != NULL) {
+		Sentences * next = sentences->next;
 		destroySentence(sentences->sentence);
-		destroySentences(sentences->next);
 		free(sentences);
+		sentences = next;
 	}
 }
 

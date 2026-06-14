@@ -71,9 +71,10 @@ char * concatenate(const unsigned int count, ...) {
 
 char * escape(const char * string) {
 	unsigned int length = 1;
-	for (unsigned int k = 0; 0 < string[k]; ++k) {
-		if (iscntrl(string[k])) {
-			length += strlen(_controlCharacterToEscapedString(string[k]));
+	for (unsigned int k = 0; string[k] != '\0'; ++k) {
+		const unsigned char byte = (unsigned char) string[k];
+		if (iscntrl(byte)) {
+			length += strlen(_controlCharacterToEscapedString(byte));
 		}
 		else {
 			length += 1;
@@ -81,9 +82,10 @@ char * escape(const char * string) {
 	}
 	char * escapedString = calloc(length, sizeof(char));
 	char charToString[2] = { 0, 0 };
-	for (unsigned int k = 0; 0 < string[k]; ++k) {
-		if (iscntrl(string[k])) {
-			strcat(escapedString, _controlCharacterToEscapedString(string[k]));
+	for (unsigned int k = 0; string[k] != '\0'; ++k) {
+		const unsigned char byte = (unsigned char) string[k];
+		if (iscntrl(byte)) {
+			strcat(escapedString, _controlCharacterToEscapedString(byte));
 		}
 		else {
 			charToString[0] = string[k];

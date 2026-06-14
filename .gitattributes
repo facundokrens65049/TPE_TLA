@@ -54,6 +54,9 @@
 *.yml text eol=lf
 Dockerfile text eol=lf
 
+# Extensionless test programs (no extension rule above matches them).
+src/test/c/** text eol=lf
+
 # Binary formats.
 *.bmp binary
 *.dll binary

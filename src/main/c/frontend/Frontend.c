@@ -48,11 +48,19 @@ static const char * _compilationStatusAsString(const CompilationStatus compilati
 /* PUBLIC FUNCTIONS */
 
 InputBuffer * createInputBuffer(LexicalAnalyzer * lexicalAnalyzer, const char * path) {
+	// Abrimos primero: si el archivo no existe no tiene sentido reservar el
+	// wrapper ni armar el buffer de Flex con un FILE * NULL. El caller debe
+	// contemplar el retorno NULL.
+	FILE * file = fopen(path, "r");
+	if (file == NULL) {
+		logError(_logger, "Cannot open input file: \"%s\".", path);
+		return NULL;
+	}
 	InputBuffer * inputBuffer = (InputBuffer *) calloc(1, sizeof(InputBuffer));
 	inputBuffer->bufferSizeInBytes = YY_BUF_SIZE;
-	inputBuffer->file = fopen(path, "r");
+	inputBuffer->file = file;
 	inputBuffer->lexicalAnalyzer = lexicalAnalyzer;
-	inputBuffer->buffer = yy_create_buffer(inputBuffer->file, inputBuffer->bufferSizeInBytes, lexicalAnalyzer->scanner);
+	inputBuffer->buffer = yy_create_buffer(file, inputBuffer->bufferSizeInBytes, lexicalAnalyzer->scanner);
 	return inputBuffer;
 }
 
@@ -84,17 +92,15 @@ FlexContext currentLexicalAnalyzerContext(LexicalAnalyzer * lexicalAnalyzer) {
 
 void destroyInputBuffer(InputBuffer * inputBuffer) {
 	if (inputBuffer != NULL) {
-		if (inputBuffer->buffer != NULL) {
-			/**
-			 * @todo
-			 *	Because "yypop_buffer_state" in "popInputBuffer" deletes the
-			 *	buffer, this line produces a double-free error. However,
-			 *	commenting the line produces a memory-leak when a syntax error
-			 *	takes place inside a secondary input buffer.
-			 */
-			// yy_delete_buffer((YY_BUFFER_STATE) inputBuffer->buffer, (yyscan_t) inputBuffer->lexicalAnalyzer->scanner);
-			inputBuffer->buffer = NULL;
-		}
+		// El buffer de Flex (creado con yy_create_buffer y empujado con
+		// yypush_buffer_state) pertenece a la PILA de Flex, no a este wrapper,
+		// asi que NO se borra aca. Ambos caminos lo liberan exactamente una vez:
+		//   - EOF normal: popInputBuffer -> yypop_buffer_state ya lo borro.
+		//   - error de sintaxis (sin llegar al EOF): queda en la pila y lo borra
+		//     yylex_destroy() (en destroyLexicalAnalyzer), que drena la pila
+		//     entera. Verificado en FlexScanner.c (Flex 2.6.4).
+		// Llamar yy_delete_buffer aca seria un double-free en el primer caso.
+		inputBuffer->buffer = NULL;
 		if (inputBuffer->file != NULL) {
 			fclose(inputBuffer->file);
 			inputBuffer->file = NULL;

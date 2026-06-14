@@ -6,9 +6,9 @@
 #include <string.h>
 
 /**
- * Analog to "getStringOrDefault", but returning true if the string is exactly
- * "true"; false otherwise. The default value is only used when the variable
- * is undefined.
+ * Analog to "getStringOrDefault", but returning a boolean. "true"/"1" yield
+ * true and "false"/"0" yield false; the default value is used both when the
+ * variable is undefined and when it holds an unrecognized value.
  */
 bool getBooleanOrDefault(const char * name, const bool defaultValue);
 

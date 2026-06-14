@@ -21,6 +21,9 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	add_compile_options(-O3)
 	add_compile_options(-static-libgcc)
 	add_compile_options(-std=gnu99)
+	# Queremos que el proyecto compile sin warnings, asi que los activamos para
+	# todo nuestro codigo (la unica excepcion es el codigo generado, mas abajo).
+	add_compile_options(-Wall -Wextra)
 	add_link_options(-fsanitize=address)
 
 	# Compiles the scanner with Flex.
@@ -53,6 +56,17 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
 		src/main/c/support/logging/Logger.c
 		# Add more *.c files if needed (otherwise, they won't be compiled).
 		# ...
+	)
+
+	# El scanner (Flex) y el parser (Bison) son codigo GENERADO, no escrito por
+	# nosotros: se regeneran en cada build y arrastran warnings propios de Flex/
+	# Bison que no nos toca arreglar (entre ellos el stub yyerror del template
+	# base, que Bison copia dentro de BisonParser.c). Los silenciamos con -w para
+	# que -Wall/-Wextra sigan siendo utiles sobre nuestro codigo real.
+	set_source_files_properties(
+		src/main/c/frontend/lexical-analysis/FlexScanner.c
+		src/main/c/frontend/syntactic-analysis/BisonParser.c
+		PROPERTIES COMPILE_OPTIONS "-w"
 	)
 
 	# Link final project and libraries.

@@ -79,7 +79,7 @@ typedef struct {
  * Creates a new logger with the specified name. That name will be visible in
  * every line you log with this object.
  */
-Logger * createLogger(char * name);
+Logger * createLogger(const char * name);
 
 /**
  * Destroy a logger and its resources.

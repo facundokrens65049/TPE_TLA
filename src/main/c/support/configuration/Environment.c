@@ -7,12 +7,15 @@ bool getBooleanOrDefault(const char * name, const bool defaultValue) {
 	if (value == NULL) {
 		return defaultValue;
 	}
-	else if (strcmp(value, "true") == 0) {
+	if (strcmp(value, "true") == 0 || strcmp(value, "1") == 0) {
 		return true;
 	}
-	else {
+	if (strcmp(value, "false") == 0 || strcmp(value, "0") == 0) {
 		return false;
 	}
+	// Variable presente pero con un valor no reconocido (typo, "yes", etc.):
+	// caemos al default en vez de asumir silenciosamente false.
+	return defaultValue;
 }
 
 const char * getStringOrDefault(const char * name, const char * defaultValue) {

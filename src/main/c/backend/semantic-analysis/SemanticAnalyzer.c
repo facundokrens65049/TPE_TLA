@@ -13,8 +13,6 @@ static Logger * _logger = NULL;
 // shutdown, que no recibe estado) y ademas se publica en el CompilerState.
 static SymbolTable * _symbolTable = NULL;
 
-#define DEFAULT_CURRENCY "ARS"
-
 static void _destroySymbolTable(SymbolTable * table);
 
 /** Shutdown module's internal state. */
@@ -37,24 +35,14 @@ ModuleDestructor initializeSemanticAnalyzerModule() {
 
 /* SYMBOL TABLE */
 
-static char * _duplicateString(const char * source) {
-	const size_t size = strlen(source) + 1;
-	char * copy = malloc(size);
-	memcpy(copy, source, size);
-	return copy;
-}
-
 static SymbolTable * _createSymbolTable(void) {
-	SymbolTable * table = calloc(1, sizeof(SymbolTable));
-	table->activeCurrency = _duplicateString(DEFAULT_CURRENCY);
-	return table;
+	return calloc(1, sizeof(SymbolTable));
 }
 
 static void _destroySymbolTable(SymbolTable * table) {
 	if (table == NULL) {
 		return;
 	}
-	free(table->activeCurrency);
 	for (size_t i = 0; i < table->categoryCount; ++i) {
 		free(table->categories[i]);
 	}
@@ -62,26 +50,31 @@ static void _destroySymbolTable(SymbolTable * table) {
 	free(table);
 }
 
-static void _setActiveCurrency(SymbolTable * table, const char * id) {
-	free(table->activeCurrency);
-	table->activeCurrency = _duplicateString(id);
-}
-
 // Agrega una categoria normalizada al set, salteando las que ya estan.
-static void _registerCategory(SymbolTable * table, const char * rawId) {
+// Devuelve false solo ante OOM, para que el analisis aborte la compilacion.
+static bool _registerCategory(SymbolTable * table, const char * rawId) {
 	char * normalized = normalizeCategory(rawId);
 	for (size_t i = 0; i < table->categoryCount; ++i) {
 		if (strcmp(table->categories[i], normalized) == 0) {
 			free(normalized);
-			return;
+			return true;
 		}
 	}
 	if (table->categoryCount == table->categoryCapacity) {
 		const size_t capacity = (table->categoryCapacity == 0) ? 4 : table->categoryCapacity * 2;
-		table->categories = realloc(table->categories, capacity * sizeof(char *));
+		// realloc a un temporal: si falla, no perdemos el bloque original ni
+		// dejamos categories en NULL. Propagamos el error para abortar.
+		char ** grown = realloc(table->categories, capacity * sizeof(char *));
+		if (grown == NULL) {
+			logError(_logger, "Out of memory while registering category.");
+			free(normalized);
+			return false;
+		}
+		table->categories = grown;
 		table->categoryCapacity = capacity;
 	}
 	table->categories[table->categoryCount++] = normalized;
+	return true;
 }
 
 /* SEMANTIC RULES (helpers) */
@@ -166,11 +159,11 @@ static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * tab
 
 static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * table) {
 	switch (sentence->kind) {
-		case SENTENCE_CURRENCY: {
-			CurrencySentence * currency = sentence->currencySentence;
-			_setActiveCurrency(table, currency->id);
+		case SENTENCE_CURRENCY:
+			// La divisa no requiere validacion semantica (no hay unicidad ni
+			// declaracion previa). Su valor vigente se resuelve por-sentencia
+			// en la generacion de codigo, que es la unica fase que lo usa.
 			break;
-		}
 		case SENTENCE_EXPENSE: {
 			ExpenseSentence * expense = sentence->expenseSentence;
 			if (!_checkPositiveAmount(expense->number, "expense")) {
@@ -189,8 +182,9 @@ static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * tab
 			if (expense->optionalDate != NULL && !_checkLiteralDate(expense->optionalDate->date)) {
 				return FAILED;
 			}
-			if (expense->optionalCategory != NULL) {
-				_registerCategory(table, expense->optionalCategory->id);
+			if (expense->optionalCategory != NULL
+				&& !_registerCategory(table, expense->optionalCategory->id)) {
+				return FAILED;
 			}
 			break;
 		}
@@ -202,8 +196,9 @@ static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * tab
 			if (income->optionalDate != NULL && !_checkLiteralDate(income->optionalDate->date)) {
 				return FAILED;
 			}
-			if (income->optionalCategory != NULL) {
-				_registerCategory(table, income->optionalCategory->id);
+			if (income->optionalCategory != NULL
+				&& !_registerCategory(table, income->optionalCategory->id)) {
+				return FAILED;
 			}
 			break;
 		}
@@ -221,8 +216,9 @@ static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * tab
 			if (from != NULL && until != NULL && !_checkDateRange(from, until, "subscription period")) {
 				return FAILED;
 			}
-			if (subscription->optionalCategory != NULL) {
-				_registerCategory(table, subscription->optionalCategory->id);
+			if (subscription->optionalCategory != NULL
+				&& !_registerCategory(table, subscription->optionalCategory->id)) {
+				return FAILED;
 			}
 			break;
 		}
@@ -247,8 +243,9 @@ static CompilationStatus _analyzeSentence(Sentence * sentence, SymbolTable * tab
 				if (field->kind == EDIT_FIELD_AMOUNT && !_checkPositiveAmount(field->amount, "edit amount")) {
 					return FAILED;
 				}
-				if (field->kind == EDIT_FIELD_CATEGORY) {
-					_registerCategory(table, field->categoryId);
+				if (field->kind == EDIT_FIELD_CATEGORY
+					&& !_registerCategory(table, field->categoryId)) {
+					return FAILED;
 				}
 			}
 			break;

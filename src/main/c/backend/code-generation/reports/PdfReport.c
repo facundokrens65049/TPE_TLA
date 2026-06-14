@@ -8,8 +8,8 @@
 #define PDF_LINES_PER_PAGE 30
 
 void emitPdfReportSelect(const DatePeriod * period) {
-	char fromBuffer[11];
-	char toBuffer[11];
+	char fromBuffer[ISO_DATE_BUFFER_SIZE];
+	char toBuffer[ISO_DATE_BUFFER_SIZE];
 	resolvePeriodBounds(period, fromBuffer, toBuffer);
 	emitSql("WITH\n");
 	emitReportHeaderCTE();

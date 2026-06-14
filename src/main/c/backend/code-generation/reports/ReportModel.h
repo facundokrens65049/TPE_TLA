@@ -2,6 +2,7 @@
 #define REPORT_MODEL_HEADER
 
 #include "../../../frontend/syntactic-analysis/AbstractSyntaxTree.h"
+#include "../../../support/language/DateUtils.h"
 #include <stdbool.h>
 
 #define COL_ID_WIDTH 5

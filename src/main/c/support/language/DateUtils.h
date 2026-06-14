@@ -17,6 +17,13 @@ typedef int DateValue;
  */
 #define INVALID_DATE_VALUE (-1)
 
+/**
+ * Bytes required to hold an ISO "YYYY-MM-DD" date literal: 10 characters plus
+ * the null terminator. Every buffer passed to formatDateValueIso must be at
+ * least this size.
+ */
+#define ISO_DATE_BUFFER_SIZE 11
+
 /** Returns true if the given year is a leap year in the Gregorian calendar. */
 bool isLeapYear(const int year);
 
@@ -51,8 +58,8 @@ DateValue tomorrow(void);
 
 /**
  * Writes the SQL/ISO literal "YYYY-MM-DD" of a valid YYYYMMDD date into the
- * caller-provided buffer, which must hold at least 11 bytes. Used by code
- * generation to emit concrete dates into the SQL script.
+ * caller-provided buffer, which must hold at least ISO_DATE_BUFFER_SIZE bytes.
+ * Used by code generation to emit concrete dates into the SQL script.
  */
 void formatDateValueIso(const DateValue date, char * buffer);
 

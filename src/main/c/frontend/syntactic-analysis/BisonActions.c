@@ -58,6 +58,18 @@ static EditFieldList * _reverseEditFields(EditFieldList * head) {
 
 /* PUBLIC FUNCTIONS */
 
+// Nota sobre el manejo de memoria: a proposito NO chequeamos el retorno de cada
+// calloc en estas acciones. Cada una reserva apenas unos pocos bytes para un
+// nodo del arbol, y la unica forma de que calloc devuelva NULL es que el sistema
+// se haya quedado literalmente sin memoria. Si eso pasa, no hay nada util que el
+// compilador pueda seguir haciendo: el programa de entrada ni siquiera termina
+// de parsearse. Meterle un "if (== NULL)" a las ~30 acciones solo agregaria
+// ruido que nunca se ejecuta y ensuciaria la logica, sin un plan de recuperacion
+// real detras. Por eso reservamos el chequeo explicito para los pocos lugares
+// donde si importa: por ejemplo el realloc que agranda la tabla de categorias
+// (SemanticAnalyzer.c), donde un fallo podria perder un bloque ya valido o
+// dejar un puntero colgando, y ahi si propagamos el error.
+
 ReportFormat * ReportFormatSemanticAction(ReportFormatKind kind) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	ReportFormat * format = calloc(1, sizeof(ReportFormat));

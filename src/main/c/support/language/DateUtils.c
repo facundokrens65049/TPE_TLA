@@ -16,7 +16,9 @@ static DateValue _toDateValue(const struct tm * time) {
 static DateValue _relativeDate(const int dayOffset) {
 	const time_t now = time(NULL);
 	struct tm local;
-	localtime_r(&now, &local);
+	if (localtime_r(&now, &local) == NULL) {
+		return INVALID_DATE_VALUE;
+	}
 	local.tm_mday += dayOffset;
 	local.tm_isdst = -1;
 	mktime(&local);
@@ -79,10 +81,16 @@ DateValue tomorrow(void) {
 }
 
 void formatDateValueIso(const DateValue date, char * buffer) {
-	const int year = date / 10000;
-	const int month = (date / 100) % 100;
-	const int day = date % 100;
-	sprintf(buffer, "%04d-%02d-%02d", year, month, day);
+	// Trabajamos en unsigned y acotamos cada componente a su rango: year a 4
+	// digitos (0-9999), month y day a 2 (0-99). Asi la salida es siempre
+	// exactamente "YYYY-MM-DD" (10 chars + '\0' = ISO_DATE_BUFFER_SIZE) y GCC
+	// puede probar que no hay truncamiento (-Wformat-truncation). Un date
+	// invalido/negativo degrada a "0000-00-00" en vez de desbordar el buffer.
+	const unsigned int safe = (date < 0) ? 0u : (unsigned int) date;
+	const unsigned int year = (safe / 10000u) % 10000u;
+	const unsigned int month = (safe / 100u) % 100u;
+	const unsigned int day = safe % 100u;
+	snprintf(buffer, ISO_DATE_BUFFER_SIZE, "%04u-%02u-%02u", year, month, day);
 }
 
 DateValue addMonths(const DateValue date, const int months) {
